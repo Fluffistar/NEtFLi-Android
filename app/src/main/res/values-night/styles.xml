@@ -4,4 +4,8 @@
         <item name="android:background">#FF1C1C1C</item>
         <item name="exampleColor">@color/light_blue_600</item>
     </style>
+
+
+
+
 </resources>

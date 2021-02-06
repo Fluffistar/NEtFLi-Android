@@ -5,8 +5,9 @@
     android:layout_height="150dp"
     android:orientation="horizontal"
     android:paddingTop="8dp"
+    android:paddingBottom="8dp"
     android:paddingLeft="8dp"
-    android:background="@color/cardview_dark_background"
+    android:background="#FF1C1C1C"
     >
 
     <ImageView
@@ -37,9 +38,9 @@
             android:layout_width="match_parent"
             android:layout_alignParentBottom="true"
             android:text="Serie"
+            android:textColor="@color/gray_400"
 
 
-            android:gravity="center"
 
             />
 

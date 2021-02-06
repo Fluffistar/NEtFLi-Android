@@ -153,7 +153,15 @@ data class TvShow2 (
 data class Genre (
     val id: Long,
     val name: String
+
 )
+
+
+class Genres(var name : String = "",var series : List<Serie> = mutableListOf()){
+
+
+}
+
 @Serializable
 data class LastEpisodeToAir (
     @SerialName( "air_date")

@@ -48,14 +48,14 @@ class Series(val series : List<Serie>){
 public class SelectedSerie
     (
 
-      var  finished :Boolean = false,
+    var  finished :Boolean = false,
     val series  :Serie,
-   val seasons : List<Int>,
-      var SeasonsList :MutableList<Seasons>  = mutableListOf() ,
-       var last :Seasons? = null,
-      var hasSpecial  :Boolean = false,
-     val SelectedSeason :Int = 0,
-      val SelectedEpisode :Int = 0
+    val seasons : List<Int>,
+    var SeasonsList :MutableList<Seasons>  = mutableListOf(),
+    var last :Seasons? = null,
+    var hasSpecial  :Boolean = false,
+    var SelectedSeason :Int = 0,
+    var SelectedEpisode :Int = 0
     ) : java.io.Serializable {
     suspend fun CreateSeasons()
     {
@@ -67,7 +67,7 @@ public class SelectedSerie
             {
                 val request : String = getJson(getKey(main + SerieGet + series.id + "&season=" + i));
 
-                val seaso : Seasons = Json{ignoreUnknownKeys = true}.decodeFromString<Seasons>(request);
+                val seaso : Seasons = Json{ignoreUnknownKeys = true;coerceInputValues = true}.decodeFromString<Seasons>(request);
                 seaso.name = if(i == 0)  "Specials" else "Season " + i;
                 seaso.id = i;
 
@@ -117,10 +117,10 @@ public class Episodes
     val series : Int,
      val season  : Int  ,
     val episode  : Int,
-    val german  : String,
-    val english  : String,
+    val german  : String = "",
+    val english  : String = "",
     // public string thumbnail { get; set; }
-    val description  : String,
+    val description  : String = "",
     val  links :List<Links>
 ): java.io.Serializable
 @Serializable
@@ -132,4 +132,8 @@ public class Links
         val hosterTitle  : String ,
         val language : Int
 
-        ): java.io.Serializable
+        ): java.io.Serializable{
+    override fun toString(): String {
+        return  hosterTitle
+    }
+        }

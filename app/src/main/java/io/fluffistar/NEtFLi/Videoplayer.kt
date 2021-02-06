@@ -50,13 +50,14 @@ class Videoplayer : AppCompatActivity() {
 
 
         if(serie != null) {
-            val video_view = findViewById<VideoView>(R.id.videoplayer)
+            val video_view = findViewById<VideoPlayerPro>(R.id.videoplayer)
 
             val mediaController = MediaController(this)
             mediaController.setAnchorView(video_view)
-
+            serie?.SelectedSeason = 0
+            serie?.SelectedEpisode = id!!.toInt() -1
             Thread{
-                val url = Verwaltung.getKey(Verwaltung.main + serie!!.SeasonsList[0].episodes[id!!.toInt()].links[0].link)
+                val url = Verwaltung.getKey(Verwaltung.main + serie!!.SeasonsList[0].episodes[id!!.toInt() -1].links[0].link)
 
                 val client = OkHttpClient()
 
@@ -75,11 +76,8 @@ class Videoplayer : AppCompatActivity() {
         //source: ' // ',
 
                 runOnUiThread {
-                    video_view.setVideoPath("$input")
-                    video_view.setMediaController(mediaController)
-                    video_view.requestFocus()
+                    video_view.setup(  serie)
 
-                    video_view.start()
                 }
 
             }.start()

@@ -10,7 +10,7 @@
 
 
 
-     <VideoView
+     <io.fluffistar.NEtFLi.VideoPlayerPro
 
          android:id="@+id/videoplayer"
          android:layout_width="match_parent"

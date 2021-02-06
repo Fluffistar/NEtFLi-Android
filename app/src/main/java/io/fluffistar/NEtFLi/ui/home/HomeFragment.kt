@@ -11,6 +11,7 @@ import android.widget.*
 import android.widget.LinearLayout.HORIZONTAL
 import androidx.fragment.app.*
 import io.fluffistar.NEtFLi.Backend.Verwaltung
+import io.fluffistar.NEtFLi.ListSerie
 import io.fluffistar.NEtFLi.R
 import io.fluffistar.NEtFLi.Serializer.Serie
 import io.fluffistar.NEtFLi.SerieVIEW
@@ -20,6 +21,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var homeViewModel: HomeViewModel
 
+    private  lateinit var  maingrid : LinearLayout;
 
 
     override fun onCreateView(
@@ -30,7 +32,7 @@ class HomeFragment : Fragment() {
 
         val root = inflater.inflate(R.layout.fragment_home, container, false) as (ViewGroup)
 
-        val maingrid :LinearLayout = root.findViewById(R.id.maingrid)
+        maingrid   = root.findViewById(R.id.maingrid)
 
 
 
@@ -39,8 +41,12 @@ class HomeFragment : Fragment() {
         while(Verwaltung.laoded == false ){}
         this.activity?.runOnUiThread(){
             //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
-           for( i in 1..10)
-            showGenre(Verwaltung._AllSeries.series, root.context, maingrid)
+
+            showGenre(Verwaltung._TopSeries.series, root.context, "TOP:")
+            showGenre(Verwaltung._BeliebtSeries.series, root.context, "BELIEBT:")
+            showGenre(Verwaltung._NeuSeries.series, root.context, "NEU:")
+            for(i in (0..28).shuffled().take(5))
+                showGenre(Verwaltung.AllGenres[i].series.shuffled().take(25),root.context,Verwaltung.AllGenres[i].name)
         }
 
     }.start()
@@ -53,56 +59,11 @@ class HomeFragment : Fragment() {
         return root
     }
 
-    fun  showGenre(list: List<Serie>, context: Context, layout: LinearLayout)  {
+    fun  showGenre(list: List<Serie>,  context: Context,title: String )  {
 
-        Log.d("allSerie", Verwaltung._AllSeries.series.size.toString())
+        var view = ListSerie(context,list,title)
 
-        val linearParams = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-        var panel : LinearLayout = LinearLayout(context)
-        panel.isNestedScrollingEnabled = true
-
-        panel.orientation = HORIZONTAL
-        panel.layoutParams = linearParams
-        panel.setBackgroundResource(R.drawable.panelbackground)
-
-        panel.setPadding(0, 0, 0, 20)
-        var view = HorizontalScrollView(context)
-        val layoutParams = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-        view.layoutParams = layoutParams
-
-        view.addView(panel)
-        for( i in 1..8 ){
-
-            var s = SerieVIEW(context)
-            s.layoutParams = layoutParams
-            s.text = list[i].name
-            s.id =  list[i].id
-            s.setImage(Verwaltung.main + list[i].cover)
-            Log.d("allSerie", s.text.toString())
-            s.setPadding(0, 0, 10, 0)
-            s.setOnClickListener {
-               // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
-
-                val intent = Intent(
-                    this.activity,
-                    SeriesPage::class.java
-                )
-                intent.putExtra("ID", s.id)
-                startActivity(intent)
-
-            }
-            panel.addView(s)
-
-
-        }
-
-        layout.addView(view)
+        maingrid.addView(view)
 
     }
 }

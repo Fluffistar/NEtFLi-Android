@@ -21,11 +21,11 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 <ScrollView
-    android:background="@color/cardview_dark_background"
+    android:background="#FF1C1C1C"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
-        android:id="@+id/episodelist"
+
       android:layout_width="match_parent"
       android:orientation="vertical"
       android:layout_height="match_parent">
@@ -48,31 +48,34 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="wrap_content">
-          <LinearLayout
+          <RelativeLayout
               android:orientation="horizontal"
               android:layout_width="match_parent"
 
               android:layout_height="50dp">
               <TextView
                   android:id="@+id/title_SeriePage"
-                  android:layout_width="wrap_content"
-                  android:textSize="16dp"
+                  android:layout_width="match_parent"
+                  android:layout_toLeftOf="@id/seasoncombo"
+                  android:textSize="21dp"
                   android:text="TITLE"
                   android:gravity="center"
                   android:textColor="@color/white"
-                  android:background="@color/cardview_dark_background"
+                  android:background="#FF1C1C1C"
                   android:layout_height="50dp" />
               <Spinner
                   android:id="@+id/seasoncombo"
                   android:layout_width="wrap_content"
-                  android:background="@color/cardview_dark_background"
+                  android:background="#FF1C1C1C"
+                  android:foregroundTint="@color/white"
+                  android:layout_alignParentRight="true"
                   android:layout_height="50dp" />
-          </LinearLayout>
+          </RelativeLayout>
           <TextView
                   android:id="@+id/text_SeriePage"
                   android:layout_width="match_parent"
                   android:layout_height="150dp"
-                  android:background="@color/cardview_dark_background"
+                  android:background="#FF1C1C1C"
                   android:textColor="@color/white"
                   />
 
@@ -80,7 +83,13 @@
 
       </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/episodelist"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
+    </LinearLayout>
 
   </LinearLayout>
 
