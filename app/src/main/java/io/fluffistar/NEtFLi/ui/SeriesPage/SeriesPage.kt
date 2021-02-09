@@ -13,6 +13,7 @@ import io.fluffistar.NEtFLi.Backend.TMDB
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.EpisodeView
 import io.fluffistar.NEtFLi.R
+import io.fluffistar.NEtFLi.Serializer.Seaso
 import io.fluffistar.NEtFLi.Serializer.Seasons
 import io.fluffistar.NEtFLi.Serializer.SelectedSerie
 import io.fluffistar.NEtFLi.Serializer.TvShow2
@@ -29,7 +30,7 @@ class SeriesPage : AppCompatActivity() {
         lateinit var serie :SelectedSerie
         lateinit var comboseason : Spinner
         lateinit var episodelist : LinearLayout
-        lateinit var tv : TvShow2
+          var tv : TvShow2? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,9 +55,11 @@ class SeriesPage : AppCompatActivity() {
     }
 
     fun createlist(){
+        var actual : Seaso? = null
         episodelist.removeAllViewsInLayout()
         val index = serie!!.SeasonsList[comboseason.selectedItemId.toInt()].id
-        val actual = tv.seasons.find { it.seasonNumber.toInt() == index }
+        if(tv != null)
+         actual = tv!!.seasons.find { it.seasonNumber.toInt() == index }
         var i = 0
         for (episode in serie!!.SeasonsList[comboseason.selectedItemId.toInt()].episodes){
 
@@ -99,9 +102,11 @@ class SeriesPage : AppCompatActivity() {
 
             serie =   Verwaltung.GetSerie(id.toString())
 
+    try {
+
 
             tv = TMDB.getTV(serie!!);
-            TMDB.GetTvEpisodes(tv);
+            TMDB.GetTvEpisodes(tv!!);}catch (ex : java.lang.Exception){ }
 
             serie!!.CreateSeasons();
 
