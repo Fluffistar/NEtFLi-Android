@@ -20,6 +20,7 @@ class EpisodeView : LinearLayout {
     private  var _text : TextView
     private  var _title : TextView
     private var _id : Long = -1
+    private var _season : Long = -1
 
 
     fun setImage(value: String){
@@ -31,6 +32,13 @@ class EpisodeView : LinearLayout {
         get() = _title.text.toString()
         set(value) {
             _title.text =value
+        }
+
+    var season : Long?
+        get() = _season
+        set(value) {
+            _season = value!!
+
         }
 
 

@@ -1,24 +1,22 @@
 package io.fluffistar.NEtFLi
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.media.MediaPlayer.OnPreparedListener
+import android.content.Intent
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.webkit.*
 import android.widget.*
+import androidx.core.content.ContextCompat.startActivity
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.Serializer.Links
 import io.fluffistar.NEtFLi.Serializer.SelectedSerie
-import okhttp3.OkHttpClient
-import okhttp3.Request
 
 
-/**
- * TODO: document your custom view class.
- */
 class VideoPlayerPro : RelativeLayout {
 
     var _webview : WebView
@@ -36,30 +34,90 @@ class VideoPlayerPro : RelativeLayout {
     var _languagecombo : Spinner
     var _hostercombo : Spinner
     var _timeline : SeekBar
-    lateinit var _serie:SelectedSerie
+    var _more : ImageView
+
     var SelectedEpisodes :Int
-        get () =  _serie.SelectedEpisode
-        set  (value)  { _serie.SelectedEpisode = value }
+        get () =  Verwaltung.SelectedSerie!!.SelectedEpisode
+        set  (value)  { Verwaltung.SelectedSerie!!.SelectedEpisode = value }
   var SelectedSeason : Int
-    get() =  _serie.SelectedSeason
-    set(value) { _serie.SelectedSeason = value;  }
+    get() =  Verwaltung.SelectedSerie!!.SelectedSeason
+    set(value) { Verwaltung.SelectedSerie!!.SelectedSeason = value;  }
 
 
-     class MyJavaScriptInterface {
+     class MyJavaScriptInterface(val activity: Activity) {
         @SuppressWarnings("unused")
         @JavascriptInterface
         fun processHTML(html: String?) {
-           Log.d("MYHTML" , html!!)
-            VideoPlayerPro.html  =html
-            var src = vivo(html)
-             if(src!= ""){
-              VideoPlayerPro.loaded = true
-              Log.d("MYSRC" ,src)
-                 _video.setVideoURI(Uri.parse(src))
-                 _video.start()
-          }
-        }
-    }
+           Log.d("MYHTML", html!!)
+
+            when(hoster){
+
+                "Vivo" -> {
+                    var src = vivo(html)
+                    Log.d("MYSRC", src)
+                    if (src != "")
+                        if (!VideoPlayerPro.loaded) {
+                            VideoPlayerPro.loaded = true
+                            Log.d("MYSRC", src)
+                            activity.runOnUiThread {
+                                _video.stopPlayback()
+                                _video.setVideoURI(Uri.parse(src))
+                                myurl = src
+                                _video.start()
+                            }
+                        }
+                }
+                "VOE" -> {
+                    var src = veo(html)
+                    Log.d("MYSRC", src)
+                    if (src != "")
+                        if (!VideoPlayerPro.loaded) {
+                            VideoPlayerPro.loaded = true
+                            Log.d("MYSRC", src)
+                            activity.runOnUiThread {
+                                _video.stopPlayback()
+                                _video.setVideoURI(Uri.parse(src))
+                                myurl = src
+                                _video.start()
+                            }
+                        }
+                }
+                "Streamtape" -> {
+                    var src = streamtape(html)
+                    Log.d("MYSRC", src)
+                    if (src != "")
+                        if (!VideoPlayerPro.loaded) {
+                            VideoPlayerPro.loaded = true
+                            Log.d("MYSRC", src)
+                            activity.runOnUiThread {
+                                _video.stopPlayback()
+                                _video.setVideoURI(Uri.parse(src))
+                                myurl = src
+                                _video.start()
+                            }
+                        }
+                }
+                "Vidoza" -> {
+                    var src = vidoza(html)
+                    Log.d("MYSRC", src)
+                    if (src != "")
+                        if (!VideoPlayerPro.loaded) {
+                            VideoPlayerPro.loaded = true
+                            Log.d("MYSRC", src)
+                            activity.runOnUiThread {
+                                _video.stopPlayback()
+                                _video.setVideoURI(Uri.parse(src))
+                                myurl = src
+
+                                _video.start()
+
+                            }
+                        }
+                }
+
+            }
+
+    }}
 
         constructor(context: Context, attrs: AttributeSet):super(context, attrs){
 
@@ -81,25 +139,24 @@ class VideoPlayerPro : RelativeLayout {
         _languagecombo = findViewById(R.id.languagecombo)
         _hostercombo = findViewById(R.id.Hostercombo)
         _timeline = findViewById(R.id.seekbar)
-
-            val webSettings: WebSettings = _webview.getSettings()
-            _webview.addJavascriptInterface(MyJavaScriptInterface(), "HTMLOUT")
+    _more = findViewById(R.id.openwith)
+            val webSettings: WebSettings = _webview.settings
+            _webview.addJavascriptInterface(MyJavaScriptInterface((context as Activity)), "HTMLOUT")
             webSettings.javaScriptEnabled = true
-            _webview.setWebViewClient(object : WebViewClient() {
+            _webview.webViewClient = object : WebViewClient() {
 
 
                 override fun onPageFinished(view: WebView, url: String) {
                     Log.d("MYHTML", "FINISHED")
 
-
-
-                        view.loadUrl("javascript:window.HTMLOUT.processHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');")
+                    loaded = false
+                    view.loadUrl("javascript:window.HTMLOUT.processHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');")
 
 
                 }
-            })
+            }
 
-
+        _next.setOnClickListener { if (loaded) next() }
 
 
         _backbtn.setOnClickListener {
@@ -134,33 +191,63 @@ class VideoPlayerPro : RelativeLayout {
                 _play.setImageResource(R.drawable.ic_pause)
             }
         }
-            _video.setOnPreparedListener {  total_duration = _video.getDuration()
-                _maxtime.setText(timeConversion(total_duration.toLong()))
-                _curtime.setText(timeConversion(current_pos.toLong()))
-                _timeline.setMax(total_duration)
-                _video.start()
-                _play.setImageResource(R.drawable.ic_pause)
-                _video.setOnCompletionListener { next() }
+
+            _languagecombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
+                    changedcombo()
+                }
+
+                override fun onNothingSelected(parentView: AdapterView<*>?) {
+                    // your code here
+                }
+            }
+            _hostercombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
+                    changedcombo()
+                }
+
+                override fun onNothingSelected(parentView: AdapterView<*>?) {
+                    // your code here
+                }
             }
 
+            _video.setOnPreparedListener {  total_duration = _video.duration
+                _maxtime.text = timeConversion(total_duration.toLong())
+                _curtime.text = timeConversion(current_pos.toLong())
+                _timeline.max = total_duration
+                _video.start()
+                _play.setImageResource(R.drawable.ic_pause)
+                _video.setOnCompletionListener { if (loaded) next() }
 
+
+            }
+
+            _more.setOnClickListener {
+                val intent = Intent()
+                intent.action = Intent.ACTION_VIEW
+                intent.setDataAndType(Uri.parse(myurl ), "video/*")
+                (context as Activity).startActivity(intent)
+            }
 
     }
 
-    var avaibleHoster : List<Links> = mutableListOf()
-    var SelectedLanguage : List<Links> = mutableListOf()
-    var GermanLanguage : List<Links> = mutableListOf()
-    var EnglishLanguage : List<Links> = mutableListOf()
-    var SubLanguage : List<Links> = mutableListOf()
-    var allLanguages : MutableList<List<Links>> = mutableListOf()
-    private  var lags : MutableList<String> = mutableListOf()
-    private  var host : MutableList<String> = mutableListOf()
-    fun init(){
-        _hostercombo.setSelection(0)
-        avaibleHoster = _serie.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].links
-        current_pos = _video.getCurrentPosition()
 
-        _title.text = if(_serie.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].german != "") _serie.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].german else _serie.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].english
+    private var avaibleHoster : List<Links> = mutableListOf()
+    private var SelectedLanguage : List<Links> = mutableListOf()
+    private var GermanLanguage : List<Links> = mutableListOf()
+    private var EnglishLanguage : List<Links> = mutableListOf()
+    private var SubLanguage : List<Links> = mutableListOf()
+    private val allLanguages : MutableList<List<Links>> = mutableListOf()
+    private  val lags : MutableList<String> = mutableListOf()
+    private  val host : MutableList<String> = mutableListOf()
+
+    fun init(){
+
+        _hostercombo.setSelection(0)
+        avaibleHoster = Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].links
+        current_pos = _video.currentPosition
+
+        _title.text = if(Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].german != "") Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].german else Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].english
 Thread {
     GermanLanguage =
         avaibleHoster.filter { it.language == 1 && Verwaltung._hosternames.contains(it.hosterTitle) }
@@ -168,11 +255,11 @@ Thread {
         avaibleHoster.filter { it.language == 2 && Verwaltung._hosternames.contains(it.hosterTitle) }
     SubLanguage =
         avaibleHoster.filter { it.language == 3 && Verwaltung._hosternames.contains(it.hosterTitle) }
-    if (SubLanguage.isNotEmpty()) {
+    if (GermanLanguage.isNotEmpty()) {
         allLanguages.add(GermanLanguage)
         lags.add("German")
     }
-    if (SubLanguage.isNotEmpty()) {
+    if (EnglishLanguage.isNotEmpty()) {
         allLanguages.add(EnglishLanguage)
         lags.add("English")
     }
@@ -188,16 +275,12 @@ Thread {
     (context as Activity).runOnUiThread {
         _hostercombo.setSelection(0)
         _languagecombo.setSelection(0)
-    }
-    (context as Activity).runOnUiThread {
+
         _languagecombo.adapter = ArrayAdapter<String>(context, R.layout.spinner_item, lags)
         _hostercombo.adapter = ArrayAdapter<String>(context, R.layout.spinner_item, host)
-        CookieManager.getInstance().setCookie(
-            Verwaltung.main,
-            "SSTOSESSION=viagchs10q0aq03gofo4104iab"
-        );
-        Log.d("URLNOW", Verwaltung.getKey(Verwaltung.main + SelectedLanguage[0].link))
-        _webview.loadUrl(Verwaltung.getKey(Verwaltung.main + SelectedLanguage[0].link))
+
+
+        changedcombo()
     }
 
 }.start()
@@ -206,19 +289,51 @@ Thread {
 
         updateinit()
     }
+
+    fun changedcombo(){
+        loaded  = false
+        SelectedLanguage = allLanguages[_languagecombo.selectedItemPosition]
+
+        hoster = SelectedLanguage[_hostercombo.selectedItemPosition].hoster
+        Log.d("Hoster${_hostercombo.selectedItemPosition}", Verwaltung.getKey(Verwaltung.main + SelectedLanguage[_hostercombo.selectedItemPosition].link))
+
+        CookieManager.getInstance().setCookie(
+                Verwaltung.main,
+                "SSTOSESSION=${Verwaltung.Session}"
+        );
+        _webview.webViewClient = object : WebViewClient() {
+
+
+            override fun onPageFinished(view: WebView, url: String) {
+                Log.d("MYHTML", "FINISHED")
+
+
+
+                view.loadUrl("javascript:window.HTMLOUT.processHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');")
+
+
+            }
+        }
+    Thread{
+        Verwaltung.addwatch(Verwaltung.SelectedSerie!!,context)}.start()
+
+        _webview.loadUrl(Verwaltung.getKey(Verwaltung.main + SelectedLanguage[_hostercombo.selectedItemPosition].link))
+    }
+
     var count : Int = 0
     fun updateinit(){
         val activity = context as Activity
         Thread {
 
             if(_video.isPlaying)
+
                 try {
                     activity.runOnUiThread() {
                         //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
                         count ++
-                        current_pos = _video.getCurrentPosition()
-                        _curtime.setText(timeConversion(current_pos.toLong()))
-                        _timeline.setProgress(current_pos)
+                        current_pos = _video.currentPosition
+                        _curtime.text = timeConversion(current_pos.toLong())
+                        _timeline.progress = current_pos
                         if(count > 6){
                             _bar.visibility = GONE
                             _top.visibility = GONE
@@ -231,6 +346,7 @@ Thread {
                 }
 
             Thread.sleep(500)
+
             updateinit()
 
         }.start()
@@ -249,32 +365,36 @@ Thread {
         _play.setImageResource(R.drawable.ic_pause)
 
     }
-    fun play(src : String){
+    fun play(src: String){
         _video.setVideoURI(Uri.parse(src))
         _video.start()
         _play.setImageResource(R.drawable.ic_pause)
     }
 
-    fun setup(  serie: SelectedSerie?){
-            _serie = serie!!
+    fun setup(serie: SelectedSerie?){
+
         init()
 
     }
     fun next(){
-        if (SelectedEpisodes+1 < _serie.SeasonsList[SelectedSeason].episodes.size )
+        loaded = false
+        allLanguages.clear()
+        lags.clear()
+        host.clear()
+        if (SelectedEpisodes+1 < Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes.size )
         {
             SelectedEpisodes++;
-
+            init()
         }
         else
         {
-            if (SelectedSeason + 1 < _serie.SeasonsList.size )
+            if (SelectedSeason + 1 < Verwaltung.SelectedSerie!!.SeasonsList.size )
             {
-                if (_serie.SeasonsList[SelectedSeason + 1].name != "Special")
+                if (Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason + 1].name != "Special" || Verwaltung.Settings.autplay)
                 {
                     SelectedSeason++;
                     SelectedEpisodes = 0;
-
+                    init()
                 }
                 else
                 back()
@@ -298,14 +418,17 @@ Thread {
         }
         return songTime
     }
-    var current_pos : Int = 0
-    var total_duration : Int =0
+    private var current_pos : Int = 0
+    private var total_duration : Int =0
 
     constructor(context: Context):super(context){
 
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         inflater.inflate(R.layout.sample_video_player_pro, this)
         _webview = WebView(context)
+
+        _top = findViewById(R.id.topbar)
+        _bar = findViewById(R.id.bottombar)
         _video = findViewById(R.id.videoplayer2)
         _play = findViewById(R.id.playbtn)
         _skipbackward = findViewById(R.id.skipbackward)
@@ -318,42 +441,47 @@ Thread {
         _languagecombo = findViewById(R.id.languagecombo)
         _hostercombo = findViewById(R.id.Hostercombo)
         _timeline = findViewById(R.id.seekbar)
-        _top = findViewById(R.id.topbar)
-        _bar = findViewById(R.id.bottombar)
+        _more = findViewById(R.id.openwith)
+        val webSettings: WebSettings = _webview.settings
+        _webview.addJavascriptInterface(MyJavaScriptInterface((context as Activity)), "HTMLOUT")
+        webSettings.javaScriptEnabled = true
+        _webview.webViewClient = object : WebViewClient() {
 
-        _video.setOnPreparedListener(OnPreparedListener {
 
-            init()
-        })
-            _timeline?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(
-                    seekBar: SeekBar, progress: Int,
-                    fromUser: Boolean
-                ) {
-                    Toast.makeText(
-                        context,
-                        "seekbar progress: $progress",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            override fun onPageFinished(view: WebView, url: String) {
+                Log.d("MYHTML", "FINISHED")
 
-                override fun onStartTrackingTouch(seekBar: SeekBar) {
-                    Toast.makeText(context, "seekbar touch started!", Toast.LENGTH_SHORT)
-                        .show()
-                }
 
-                override fun onStopTrackingTouch(seekBar: SeekBar) {
-                    Toast.makeText(context, "seekbar touch stopped!", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            })
+
+                view.loadUrl("javascript:window.HTMLOUT.processHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');")
+
+
+            }
+        }
+
+        _next.setOnClickListener { if (loaded) next() }
+
 
         _backbtn.setOnClickListener {
 
             back()
 
         }
-
+        _top.setOnClickListener { _top.visibility = VISIBLE
+            _bar.visibility = VISIBLE
+            count = 0
+        }
+        _bar.setOnClickListener { _top.visibility = VISIBLE
+            _bar.visibility = VISIBLE}
+        _video.setOnClickListener { _top.visibility = VISIBLE
+            _bar.visibility = VISIBLE
+            count = 0
+        }
+        _skipforward.setOnClickListener { _video.seekTo(_video.currentPosition + 10000)
+            _video.start()
+        }
+        _skipbackward.setOnClickListener {_video.seekTo(_video.currentPosition - 10000)
+            _video.start()}
 
         _play.setOnClickListener {
 
@@ -366,8 +494,39 @@ Thread {
                 _play.setImageResource(R.drawable.ic_pause)
             }
         }
+        _languagecombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
+                _video.stopPlayback()
+                loaded = false
+                changedcombo()
+            }
 
-        _video.setOnCompletionListener { next() }
+            override fun onNothingSelected(parentView: AdapterView<*>?) {
+                // your code here
+            }
+        }
+        _hostercombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
+                _video.stopPlayback()
+                loaded = false
+                changedcombo()
+            }
+
+            override fun onNothingSelected(parentView: AdapterView<*>?) {
+                // your code here
+            }
+        }
+        _video.setOnPreparedListener {  total_duration = _video.duration
+            _maxtime.text = timeConversion(total_duration.toLong())
+            _curtime.text = timeConversion(current_pos.toLong())
+            _timeline.max = total_duration
+            _video.start()
+            _play.setImageResource(R.drawable.ic_pause)
+            _video.setOnCompletionListener { if (loaded) next() }
+
+
+        }
+
 
     }
 
@@ -401,13 +560,49 @@ Thread {
 
 companion object{
     var loaded = false ;
-    var html = ""
+    var hoster = ""
+    var myurl = ""
+    @SuppressLint("StaticFieldLeak")
     lateinit var _video : VideoView
+
+
+    fun getBetween(html: String, start: String, end: String) : String{
+
+        val regex =  """(?<=$start)(.*)(?=$end)""".toRegex()
+        val cryptlink = regex.find(html)?.value.orEmpty()
+        return  cryptlink
+    }
+
+
+    fun veo(str: String) : String{
+     return   getBetween(str, "\"mp4\": \"", "\",")
+
+    }
+
+    fun vidoza(str: String) : String{
+
+        val videourl: String = getBetween(str, "src: \"", "\",").replace("\"", "")
+
+
+
+        return videourl.trim()
+    }
+
+    fun streamtape(str: String) : String {
+        var videourl: String =  getBetween(str, "id=\"videolink\"", "iv>")
+
+        videourl =  getBetween(videourl, "//", "</d").replace("amp;", "")
+
+
+
+
+        return "https://" + videourl.trim()
+    }
+
     fun vivo(str: String):String{
 
-        val regex =  """(?<=source: ')(.*)(?=',)""".toRegex()
-        val cryptlink = regex.find(str)?.value.orEmpty()
-        var input : String = cryptlink
+
+        var input : String = getBetween(str, "source: '", "',")
         input = input.replace("%5E", "-");
         input = input.replace("i", ":");
 

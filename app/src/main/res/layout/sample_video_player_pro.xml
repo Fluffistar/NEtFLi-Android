@@ -48,8 +48,16 @@
             android:id="@+id/Hostercombo"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_toLeftOf="@+id/openwith"
+            android:layout_marginRight="10dp"
+            />
+        <ImageView
+            android:id="@+id/openwith"
+            android:src="@drawable/ic_more"
             android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
+            android:layout_width="25dp"
+            android:layout_height="match_parent"
             />
     </RelativeLayout>
 

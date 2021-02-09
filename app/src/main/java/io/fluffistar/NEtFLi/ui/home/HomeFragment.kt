@@ -19,7 +19,7 @@ import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
 
 class HomeFragment : Fragment() {
 
-    private lateinit var homeViewModel: HomeViewModel
+
 
     private  lateinit var  maingrid : LinearLayout;
 
@@ -38,13 +38,17 @@ class HomeFragment : Fragment() {
 
 
     Thread{
-        while(Verwaltung.laoded == false ){}
+        while(!Verwaltung.laoded){}
         this.activity?.runOnUiThread(){
             //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
 
-            showGenre(Verwaltung._TopSeries.series, root.context, "TOP:")
-            showGenre(Verwaltung._BeliebtSeries.series, root.context, "BELIEBT:")
-            showGenre(Verwaltung._NeuSeries.series, root.context, "NEU:")
+            if(!Verwaltung._WatchSeries.series.isNullOrEmpty())
+                showGenre(Verwaltung._WatchSeries.series,root.context, "WATCHLIST:")
+            if(Verwaltung.Settings.showsub)
+                showGenre(Verwaltung._Sublist.series,root.context, "SUBLIST:")
+            showGenre(Verwaltung._TopSeries.series.take(25), root.context, "TOP:")
+            showGenre(Verwaltung._BeliebtSeries.series.take(25), root.context, "BELIEBT:")
+            showGenre(Verwaltung._NeuSeries.series.take(25), root.context, "NEU:")
             for(i in (0..28).shuffled().take(5))
                 showGenre(Verwaltung.AllGenres[i].series.shuffled().take(25),root.context,Verwaltung.AllGenres[i].name)
         }
@@ -59,9 +63,11 @@ class HomeFragment : Fragment() {
         return root
     }
 
-    fun  showGenre(list: List<Serie>,  context: Context,title: String )  {
+    private fun  showGenre(list: List<Serie>, context: Context, title: String )  {
 
-        var view = ListSerie(context,list,title)
+
+
+        val view = ListSerie(context,list,title)
 
         maingrid.addView(view)
 

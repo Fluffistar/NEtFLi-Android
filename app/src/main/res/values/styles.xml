@@ -1,9 +1,8 @@
 <resources>
 
-    <style name="Widget.Theme.NEtFLi.MyView" parent="">
-        <item name="android:background">@color/gray_400</item>
-        <item name="exampleColor">@color/light_blue_400</item>
-        <item name="android:windowFullscreen">true</item>
+
+    <style name="Splashtheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/background_splash</item>
     </style>
 
 

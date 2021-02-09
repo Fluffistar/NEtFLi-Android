@@ -11,9 +11,15 @@ import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.GridView
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.leanback.widget.HorizontalGridView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import io.fluffistar.NEtFLi.Backend.CustomAdapter
+import io.fluffistar.NEtFLi.Backend.CustomAdapterRecycler
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.Serializer.Serie
 import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
@@ -23,7 +29,7 @@ import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
  */
 class ListSerie : LinearLayout {
 
-     private var _panel : LinearLayout
+     private var _panel : RecyclerView
      private  var _text : TextView
 
     constructor(context: Context ,  attrs : AttributeSet):super(context , attrs){
@@ -46,9 +52,12 @@ class ListSerie : LinearLayout {
         inflater.inflate(R.layout.sample_list_serie,  this )
         _panel = findViewById(R.id.list_Serie)
         _text = findViewById(R.id.list_text)
+        _panel.setLayoutManager( LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
 
-
+        _panel.adapter = CustomAdapterRecycler(context,list)
         _text.text = string
+
+    /*
 
         for( i in list ){
 
@@ -70,11 +79,12 @@ class ListSerie : LinearLayout {
                 context.startActivity(intent)
 
             }
-            _panel.addView(s)
+            _panel.addView(s) }  */
 
 
         }
 
-    }
+
 
 }
+

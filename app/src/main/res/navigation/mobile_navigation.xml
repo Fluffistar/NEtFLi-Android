@@ -11,15 +11,15 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_home" />
 
+ 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="io.fluffistar.NEtFLi.ui.LastSeries.LastSeriesFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
-
+        android:id="@+id/nav_search"
+        android:name="io.fluffistar.NEtFLi.ui.Search.SearchFragment"
+        android:label="Search"
+        tools:layout="@layout/fragment_search" />
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="io.fluffistar.NEtFLi.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_setting"
+        android:name="io.fluffistar.NEtFLi.ui.settings.SettingFragment"
+        android:label="Settings"
+        tools:layout="@layout/settingfragment" />
 </navigation>

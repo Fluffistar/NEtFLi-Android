@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF1C1C1C"
+    tools:context=".ui.Search.SearchFragment">
+
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="100dp">
+                <AutoCompleteTextView
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    android:id="@+id/searchbox"
+                    android:layout_width="match_parent"
+                    android:layout_height="75dp"
+
+                    android:hint="Search"
+                    android:gravity="center"
+                    android:layout_toLeftOf="@id/searchbtn"
+                    />
+                <ImageView
+                    android:id="@+id/searchbtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_alignParentRight="true"
+                    android:src="@drawable/ic_search"
+                    android:theme="@style/Theme.Design"
+                     android:layout_margin="20dp"
+                    />
+
+
+
+            <GridView
+
+                android:id="@+id/searchepilist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:horizontalSpacing="10dp"
+                android:numColumns="auto_fit"
+                android:verticalSpacing="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_below="@id/searchbox"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            </GridView>
+
+
+
+
+
+</RelativeLayout>

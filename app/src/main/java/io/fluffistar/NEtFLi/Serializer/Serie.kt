@@ -13,12 +13,12 @@ class Serie(
     val id: Long,
     val name: String,
     val link: String,
-    val cover: String,
-    val background: String,
-    val description: String,
-    val trailer: String,
+    val cover: String = "",
+    val background: String = "",
+    val description: String = "",
+    val trailer: String = "",
      val genre: Long = 0,
-    val fsk: Long,
+    val fsk: Long = 0,
        val productionStart :Int  = 0,
         val productionEnd :Int = 0,
 //public Genre mainGenre :Genre ,
@@ -41,7 +41,7 @@ class Serie(
 }
 
 @Serializable
-class Series(val series : List<Serie>){
+class Series(var series : MutableList<Serie>){
 }
 
 @Serializable
