@@ -11,12 +11,13 @@ android {
 
     defaultConfig {
         applicationId "io.fluffistar.NEtFLi"
-        minSdkVersion 26
+        minSdkVersion 20
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
 
     buildTypes {

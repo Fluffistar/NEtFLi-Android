@@ -40,7 +40,7 @@ class SearchFragment : Fragment() {
 
         val searchlist :MutableList<String> = mutableListOf()
 
-        for(i in Verwaltung._AllSeries.series)
+        for(i in Verwaltung._AllSeries)
             searchlist.add(i.name)
 
         searchtxt.setAdapter(ArrayAdapter<String>(root.context,R.layout.spinner_item,searchlist))
@@ -51,7 +51,7 @@ class SearchFragment : Fragment() {
 
 
             Log.d("clicl", "clicked")
-            var list = Verwaltung._AllSeries.series.filter { it.name.contains(searchtxt.text.toString(), ignoreCase = true) }.take(100)
+            var list = Verwaltung._AllSeries.filter { it.name.contains(searchtxt.text.toString(), ignoreCase = true) }.take(100)
             Log.d("COUNT",list.size.toString())
             var android : MutableList<SerieVIEW> = mutableListOf()
           /*  for (i in list){

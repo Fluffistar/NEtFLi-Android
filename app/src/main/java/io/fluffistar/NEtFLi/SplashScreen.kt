@@ -16,6 +16,7 @@ import com.github.kittinunf.result.Result
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.ui.LoginPage.LoginActivity
 import org.json.JSONObject
+import java.io.IOException
 import java.lang.Exception
 
 
@@ -25,9 +26,7 @@ class SplashScreen : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Thread {
-            Verwaltung.Setup(this)
-        }.start()
+
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.splashlayout)
@@ -38,16 +37,19 @@ class SplashScreen : AppCompatActivity() {
 
             Handler(Looper.getMainLooper()).postDelayed(Runnable {
                 // Update UI here
-
+                Thread {
+                    Verwaltung.Setup(this)
+                }.start()
+                while (!Verwaltung.laoded){}
                 val sharedPref = this.getSharedPreferences(  "data",Context.MODE_PRIVATE)
                 val email_txt = sharedPref.getString( "email", "")
                 val password_txt = sharedPref.getString( "password", "")
-                val url = Verwaltung.getKey( Verwaltung.main +  "/api/v1/account/login")
+                val url =  ( Verwaltung.main +  "/login")
                 Log.d("RESZULTz","password: $password_txt and email: $email_txt")
                 val asynclogin = Fuel.post(
                     url,
                     listOf("email" to "$email_txt", "password" to "$password_txt")
-                ).responseString { _, _, result ->
+                ).responseString { request, response, result  ->
                     when(result){
                         is  Result.Failure -> {
                             val intent = Intent(this, LoginActivity::class.java)
@@ -58,8 +60,11 @@ class SplashScreen : AppCompatActivity() {
                         is Result.Success -> {
                             try {
                                 Log.d("RESZULTD",result.get())
-                                val session = JSONObject(result.get()).getString("session")
+                                if(result.get() != "")
+                                    throw Exception()
+                                val session = response.headers.get("Set-Cookie").asIterable().toList()[1].split(";")[0]
 
+                                Log.d("Login_Html" , result.get())
 
                                 with(sharedPref!!.edit()) {
                                     putString("SessionID", session)

@@ -4,18 +4,24 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
 import android.net.Uri
-import android.provider.MediaStore
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.webkit.*
 import android.widget.*
-import androidx.core.content.ContextCompat.startActivity
+import androidx.core.view.size
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.Serializer.Links
-import io.fluffistar.NEtFLi.Serializer.SelectedSerie
+import io.fluffistar.NEtFLi.Serializer.Serie
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import java.lang.Exception
 
 
 class VideoPlayerPro : RelativeLayout {
@@ -38,11 +44,11 @@ class VideoPlayerPro : RelativeLayout {
     var _more : ImageView
 
     var SelectedEpisodes :Int
-        get () =  Verwaltung.SelectedSerie!!.SelectedEpisode
-        set  (value)  { Verwaltung.SelectedSerie!!.SelectedEpisode = value }
+        get () =  Verwaltung.SelectedSerie!!.lastepisode
+        set  (value)  { Verwaltung.SelectedSerie!!.lastepisode = value }
   var SelectedSeason : Int
-    get() =  Verwaltung.SelectedSerie!!.SelectedSeason
-    set(value) { Verwaltung.SelectedSerie!!.SelectedSeason = value;  }
+    get() =  Verwaltung.SelectedSerie!!.lastseason
+    set(value) { Verwaltung.SelectedSerie!!.lastseason = value;  }
 
 
      class MyJavaScriptInterface(val activity: Activity) {
@@ -62,9 +68,11 @@ class VideoPlayerPro : RelativeLayout {
                             Log.d("MYSRC", src)
                             activity.runOnUiThread {
                                 _video.stopPlayback()
+                                src = java.net.URLDecoder.decode(src, "UTF-8");
                                 _video.setVideoURI(Uri.parse(src))
+
                                 myurl = src
-                                _video.start()
+
                             }
                         }
                 }
@@ -77,9 +85,10 @@ class VideoPlayerPro : RelativeLayout {
                             Log.d("MYSRC", src)
                             activity.runOnUiThread {
                                 _video.stopPlayback()
+                                src = java.net.URLDecoder.decode(src, "UTF-8");
                                 _video.setVideoURI(Uri.parse(src))
                                 myurl = src
-                                _video.start()
+
                             }
                         }
                 }
@@ -92,9 +101,10 @@ class VideoPlayerPro : RelativeLayout {
                             Log.d("MYSRC", src)
                             activity.runOnUiThread {
                                 _video.stopPlayback()
+                                src = java.net.URLDecoder.decode(src, "UTF-8");
                                 _video.setVideoURI(Uri.parse(src))
                                 myurl = src
-                                _video.start()
+
                             }
                         }
                 }
@@ -107,10 +117,12 @@ class VideoPlayerPro : RelativeLayout {
                             Log.d("MYSRC", src)
                             activity.runOnUiThread {
                                 _video.stopPlayback()
+
                                 _video.setVideoURI(Uri.parse(src))
+
                                 myurl = src
 
-                                _video.start()
+
 
                             }
                         }
@@ -141,6 +153,7 @@ class VideoPlayerPro : RelativeLayout {
         _hostercombo = findViewById(R.id.Hostercombo)
         _timeline = findViewById(R.id.seekbar)
     _more = findViewById(R.id.openwith)
+
             val webSettings: WebSettings = _webview.settings
             _webview.addJavascriptInterface(MyJavaScriptInterface((context as Activity)), "HTMLOUT")
             webSettings.javaScriptEnabled = true
@@ -194,8 +207,13 @@ class VideoPlayerPro : RelativeLayout {
         }
 
             _languagecombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
-                    changedcombo()
+                override fun onItemSelected(
+                    parentView: AdapterView<*>?,
+                    selectedItemView: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                  languageupdate()
                 }
 
                 override fun onNothingSelected(parentView: AdapterView<*>?) {
@@ -203,8 +221,13 @@ class VideoPlayerPro : RelativeLayout {
                 }
             }
             _hostercombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
-                    changedcombo()
+                override fun onItemSelected(
+                    parentView: AdapterView<*>?,
+                    selectedItemView: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                  hosterupdate()
                 }
 
                 override fun onNothingSelected(parentView: AdapterView<*>?) {
@@ -216,7 +239,16 @@ class VideoPlayerPro : RelativeLayout {
                 _maxtime.text = timeConversion(total_duration.toLong())
                 _curtime.text = timeConversion(current_pos.toLong())
                 _timeline.max = total_duration
-                _video.start()
+                try {
+                    _video.start()
+                }catch (ex:Exception){
+                    val intent = Intent()
+                    intent.action =  Intent.ACTION_VIEW
+
+                    intent.setDataAndType(Uri.parse(myurl), "video/*")
+
+                    (context as Activity).startActivity(Intent.createChooser(intent, "Select a Player"))
+                }
                 _play.setImageResource(R.drawable.ic_pause)
                 _video.setOnCompletionListener { if (loaded) next() }
 
@@ -227,7 +259,7 @@ class VideoPlayerPro : RelativeLayout {
                 val intent = Intent()
                 intent.action =  Intent.ACTION_VIEW
 
-                intent.setDataAndType(Uri.parse(myurl ), "video/*")
+                intent.setDataAndType(Uri.parse(myurl), "video/*")
 
                 (context as Activity).startActivity(Intent.createChooser(intent, "Select a Player"))
             }
@@ -235,55 +267,54 @@ class VideoPlayerPro : RelativeLayout {
     }
 
 
-    private var avaibleHoster : List<Links> = mutableListOf()
-    private var SelectedLanguage : List<Links> = mutableListOf()
-    private var GermanLanguage : List<Links> = mutableListOf()
-    private var EnglishLanguage : List<Links> = mutableListOf()
-    private var SubLanguage : List<Links> = mutableListOf()
+    private var selectedepisdoe : Serie.EpisodeSTO? = null
+    private var SelectedLanguage : List<Serie.EpisodeSTO.Hoster> = mutableListOf()
+
     private val allLanguages : MutableList<List<Links>> = mutableListOf()
     private  val lags : MutableList<String> = mutableListOf()
     private  val host : MutableList<String> = mutableListOf()
 
     fun init(){
 
-        _hostercombo.setSelection(0)
-        avaibleHoster = Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].links
-        current_pos = _video.currentPosition
 
-        _title.text = if(Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].german != "") Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].german else Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes[SelectedEpisodes].english
+       selectedepisdoe  = Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].Episodes[SelectedEpisodes]
+
+        val job: Job = GlobalScope.launch(context = Dispatchers.Default) {
+            selectedepisdoe!!.load()
+        }
+        job.start()
+        while(!job.isCompleted){}
+     //   current_pos = _video.currentPosition
+
+        _title.text = if(selectedepisdoe?.german != "") selectedepisdoe?.german else selectedepisdoe?.english
 Thread {
-    GermanLanguage =
-        avaibleHoster.filter { it.language == 1 && Verwaltung._hosternames.contains(it.hosterTitle) }
-    EnglishLanguage =
-        avaibleHoster.filter { it.language == 2 && Verwaltung._hosternames.contains(it.hosterTitle) }
-    SubLanguage =
-        avaibleHoster.filter { it.language == 3 && Verwaltung._hosternames.contains(it.hosterTitle) }
-    if (GermanLanguage.isNotEmpty()) {
-        allLanguages.add(GermanLanguage)
+
+    if (selectedepisdoe!!.German.isNotEmpty()) {
+
         lags.add("German")
     }
-    if (EnglishLanguage.isNotEmpty()) {
-        allLanguages.add(EnglishLanguage)
+    if (selectedepisdoe!!.English.isNotEmpty()) {
+
         lags.add("English")
     }
-    if (SubLanguage.isNotEmpty()) {
-        allLanguages.add(SubLanguage)
+    if (selectedepisdoe!!.Sub.isNotEmpty()) {
+
         lags.add("German Sub")
     }
-    if (allLanguages.size == 0) (context as Activity).finish()
-    SelectedLanguage = allLanguages[0]
 
-    for (i in SelectedLanguage)
-        host.add(i.hosterTitle)
+
+
+
+
     (context as Activity).runOnUiThread {
-        _hostercombo.setSelection(0)
-        _languagecombo.setSelection(0)
-
         _languagecombo.adapter = ArrayAdapter<String>(context, R.layout.spinner_item, lags)
+
         _hostercombo.adapter = ArrayAdapter<String>(context, R.layout.spinner_item, host)
 
 
-        changedcombo()
+        _hostercombo.setSelection(0)
+        _languagecombo.setSelection(0)
+      //  languageupdate()
     }
 
 }.start()
@@ -295,20 +326,28 @@ Thread {
 
     fun changedcombo(){
         loaded  = false
-        SelectedLanguage = allLanguages[_languagecombo.selectedItemPosition]
+        SelectedLanguage = when (_languagecombo.selectedItem.toString()){
+            "German" -> selectedepisdoe!!.German
+            "English" -> selectedepisdoe!!.English
+            "Sub German" -> selectedepisdoe!!.Sub
+            else -> mutableListOf()
+        }
 
-        hoster = SelectedLanguage[_hostercombo.selectedItemPosition].hoster
-        Log.d("Hoster${_hostercombo.selectedItemPosition}", Verwaltung.getKey(Verwaltung.main + SelectedLanguage[_hostercombo.selectedItemPosition].link))
+        hoster = SelectedLanguage[_hostercombo.selectedItemPosition].Hostername
+        Log.d(
+            "Hoster${_hostercombo.selectedItemPosition}",
+            Verwaltung.getKey(SelectedLanguage[_hostercombo.selectedItemPosition].link)
+        )
 
         CookieManager.getInstance().setCookie(
-                Verwaltung.main,
-                "SSTOSESSION=${Verwaltung.Session}"
+            Verwaltung.main,
+            "SSTOSESSION=${Verwaltung.Session}"
         );
-        _webview.webViewClient = object : WebViewClient() {
+                _webview.webViewClient = object : WebViewClient() {
 
 
-            override fun onPageFinished(view: WebView, url: String) {
-                Log.d("MYHTML", "FINISHED")
+                    override fun onPageFinished(view: WebView, url: String) {
+                        Log.d("MYHTML", "FINISHED")
 
 
 
@@ -317,10 +356,57 @@ Thread {
 
             }
         }
-    Thread{
-        Verwaltung.addwatch(Verwaltung.SelectedSerie!!,context)}.start()
 
-        _webview.loadUrl(Verwaltung.getKey(Verwaltung.main + SelectedLanguage[_hostercombo.selectedItemPosition].link))
+
+        _webview.loadUrl(Verwaltung.getKey(SelectedLanguage[_hostercombo.selectedItemPosition].link))
+    }
+
+    fun hosterupdate(){
+
+        if (_hostercombo.size > 0) {
+            loaded  = false
+            CookieManager.getInstance().setCookie(
+                Verwaltung.main,
+                " ${Verwaltung.Session}"
+            );
+            _webview.webViewClient = object : WebViewClient() {
+
+
+                override fun onPageFinished(view: WebView, url: String) {
+                    Log.d("MYHTML", "FINISHED")
+
+
+
+                    view.loadUrl("javascript:window.HTMLOUT.processHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');")
+
+
+                }
+            }
+            hoster = SelectedLanguage[_hostercombo.selectedItemPosition].Hostername
+            Thread{
+                Verwaltung.addwatch(Verwaltung.SelectedSerie!!, context)}.start()
+            _webview.loadUrl(Verwaltung.getKey(SelectedLanguage[_hostercombo.selectedItemPosition].link))
+        }
+    }
+    fun languageupdate(){
+        if(_languagecombo.size > 0){
+            loaded  = false
+            val x = _languagecombo.selectedItem
+
+            SelectedLanguage = when (_languagecombo.selectedItem.toString()){
+                "German" -> selectedepisdoe!!.German
+                "English" -> selectedepisdoe!!.English
+                "German Sub" -> selectedepisdoe!!.Sub
+                else -> mutableListOf()
+            }
+           host.clear()
+            for  (  h in SelectedLanguage)
+            {
+             host.add(h.Hostername)
+            }
+            _hostercombo.adapter = ArrayAdapter<String>(context, R.layout.spinner_item, host)
+            _hostercombo.setSelection(0) ;
+        }
     }
 
     var count : Int = 0
@@ -328,20 +414,21 @@ Thread {
         val activity = context as Activity
         Thread {
 
-            if(_video.isPlaying)
+
 
                 try {
                     activity.runOnUiThread() {
-                        //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
-                        count ++
-                        current_pos = _video.currentPosition
-                        _curtime.text = timeConversion(current_pos.toLong())
-                        _timeline.progress = current_pos
-                        if(count > 6){
-                            _bar.visibility = GONE
-                            _top.visibility = GONE
+                        if(_video.isPlaying) {
+                            //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
+                            count++
+                            current_pos = _video.currentPosition
+                            _curtime.text = timeConversion(current_pos.toLong())
+                            _timeline.progress = current_pos
+                            if (count > 6) {
+                                _bar.visibility = GONE
+                                _top.visibility = GONE
+                            }
                         }
-
                     }
 
                 } catch (ed: IllegalStateException) {
@@ -374,9 +461,9 @@ Thread {
         _play.setImageResource(R.drawable.ic_pause)
     }
 
-    fun setup(serie: SelectedSerie?){
+    fun setup(serie: Serie?){
 
-        init()
+       init()
 
     }
     fun next(){
@@ -384,7 +471,7 @@ Thread {
         allLanguages.clear()
         lags.clear()
         host.clear()
-        if (SelectedEpisodes+1 < Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].episodes.size )
+        if (SelectedEpisodes+1 < Verwaltung.SelectedSerie!!.SeasonsList[SelectedSeason].Episodes.size )
         {
             SelectedEpisodes++;
             init()
@@ -498,10 +585,15 @@ Thread {
             }
         }
         _languagecombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parentView: AdapterView<*>?,
+                selectedItemView: View?,
+                position: Int,
+                id: Long
+            ) {
                 _video.stopPlayback()
                 loaded = false
-                changedcombo()
+               languageupdate()
             }
 
             override fun onNothingSelected(parentView: AdapterView<*>?) {
@@ -509,10 +601,15 @@ Thread {
             }
         }
         _hostercombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parentView: AdapterView<*>?,
+                selectedItemView: View?,
+                position: Int,
+                id: Long
+            ) {
                 _video.stopPlayback()
                 loaded = false
-                changedcombo()
+           hosterupdate()
             }
 
             override fun onNothingSelected(parentView: AdapterView<*>?) {

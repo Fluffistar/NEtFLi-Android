@@ -2,7 +2,11 @@ package io.fluffistar.NEtFLi.Backend
 
 import android.R.attr.name
 import android.R.string
+import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import io.fluffistar.NEtFLi.Backend.Verwaltung.Companion.pmap
 import io.fluffistar.NEtFLi.Serializer.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -22,15 +26,17 @@ class TMDB {
         val ImgPath = "https://image.tmdb.org/t/p/original/"
 
 
-        suspend  fun getTV(name : SelectedSerie ) : TvShow2 = suspendCoroutine {
+        suspend  fun getTV(name : Serie ) : TvShow2 = suspendCoroutine {
 
                 cont-> setup(name)   { cont.resume(it) }
         }
 
 
-        fun setup(name: SelectedSerie , callback: (TvShow2) -> Unit)  = runBlocking{
 
-            var src: String = if (name.series.name.length <= 34) name.series.name else name.series.name.substring(
+
+        fun setup(name: Serie, callback: (TvShow2) -> Unit)  = runBlocking{
+
+            var src: String = if (name.name.length <= 34) name.name else name.name.substring(
                 0,
                 34
             )
@@ -43,15 +49,18 @@ class TMDB {
                     var  x : Int;
                     try
                     {
-                        // x = Int32.Parse(tv.first_air_date.Split('-')[0]);
-                        x = LocalDate.parse(tv.first_air_date).year;
+                        // ;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            x = LocalDate.parse(tv.first_air_date).year
+                        }else
+                            x =  (tv.first_air_date.split('-')[0]).toInt()
                     }
                     catch( ex : Exception)
                     {
                         x = 0;
                     }
 
-                    if (x == name.series.productionStart  )
+                    if (x == name.productionStart  )
                     {
                         val url = "https://api.themoviedb.org/3/tv/${tv.id}?api_key=${APIKEY.tmdb}&language=de"
                         Log.d("URL",url)
@@ -89,9 +98,26 @@ class TMDB {
 
             input.episodes = Json{ignoreUnknownKeys = true;coerceInputValues = true;isLenient = true}.decodeFromString<Season2>(json).episodes;
         }
+        suspend  fun getTV2(name : Serie ) : TvShow2 = suspendCoroutine {
 
-       fun GetTvEpisodes(tv :TvShow2) {
-            tv.seasons.parallelStream().forEach {
+                cont-> setup2(name)   { cont.resume(it) }
+        }
+
+        fun setup2(name: Serie, callback: (TvShow2) -> Unit)  = runBlocking {
+
+
+            val pagesrc =
+                Verwaltung.getJson("https://api.themoviedb.org/3/tv/${name.TVResult?.id}?api_key=${APIKEY.tmdb}&language=de")
+            var output: TvShow2? = null
+            output = Json {
+                ignoreUnknownKeys = true;coerceInputValues = true;isLenient = true
+            }.decodeFromString(pagesrc)
+            callback(output!!)
+        }
+
+
+       suspend fun GetTvEpisodes(tv :TvShow2) {
+            tv.seasons.pmap {
                 GlobalScope.launch {
                     work(it,tv.id)
                 }

@@ -22,6 +22,26 @@ class HomeFragment : Fragment() {
 
 
     private  lateinit var  maingrid : LinearLayout;
+    private  lateinit var  root : ViewGroup
+    override fun onResume() {
+        super.onResume()
+        maingrid.removeAllViews()
+        Thread{
+            while(!Verwaltung.laoded){}
+            this.activity?.runOnUiThread(){
+                //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
+                maingrid.removeAllViews()
+                if(!Verwaltung._WatchSeries.series.isNullOrEmpty())
+                    showGenre(Verwaltung._WatchSeries.series,root.context, "WATCHLIST:")
+
+                showGenre(Verwaltung._BeliebtSeries , root.context, "BELIEBT:")
+                showGenre(Verwaltung._NeuSeries , root.context, "NEU:")
+                for(i in (0..28).shuffled().take(5))
+                    showGenre(Verwaltung._AllSeries.filter { Verwaltung.linkname[i] ==it.genre }.shuffled().take(25),root.context,Verwaltung.linkname[i] )
+            }
+
+        }.start()
+    }
 
 
     override fun onCreateView(
@@ -30,7 +50,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        val root = inflater.inflate(R.layout.fragment_home, container, false) as (ViewGroup)
+          root = inflater.inflate(R.layout.fragment_home, container, false) as (ViewGroup)
 
         maingrid   = root.findViewById(R.id.maingrid)
 
@@ -41,16 +61,14 @@ class HomeFragment : Fragment() {
         while(!Verwaltung.laoded){}
         this.activity?.runOnUiThread(){
             //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
-
+            maingrid.removeAllViews()
             if(!Verwaltung._WatchSeries.series.isNullOrEmpty())
                 showGenre(Verwaltung._WatchSeries.series,root.context, "WATCHLIST:")
-            if(Verwaltung.Settings.showsub)
-                showGenre(Verwaltung._Sublist.series,root.context, "SUBLIST:")
-            showGenre(Verwaltung._TopSeries.series.take(25), root.context, "TOP:")
-            showGenre(Verwaltung._BeliebtSeries.series.take(25), root.context, "BELIEBT:")
-            showGenre(Verwaltung._NeuSeries.series.take(25), root.context, "NEU:")
-            for(i in (0..28).shuffled().take(5))
-                showGenre(Verwaltung.AllGenres[i].series.shuffled().take(25),root.context,Verwaltung.AllGenres[i].name)
+
+            showGenre(Verwaltung._BeliebtSeries , root.context, "BELIEBT:")
+          showGenre(Verwaltung._NeuSeries , root.context, "NEU:")
+             for(i in (0..28).shuffled().take(5))
+                showGenre(Verwaltung._AllSeries.filter { Verwaltung.linkname[i] ==it.genre }.shuffled().take(25),root.context,Verwaltung.linkname[i] )
         }
 
     }.start()

@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.Serializer.SelectedSerie
+import io.fluffistar.NEtFLi.Serializer.Serie
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -20,7 +21,7 @@ import okhttp3.Request
 class Videoplayer : AppCompatActivity() {
     var  id : Long? = -1
     var season : Long ? = -1
-    var serie : SelectedSerie? = null
+    var serie : Serie? = null
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

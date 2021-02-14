@@ -30,7 +30,7 @@ class LoginActivity : AppCompatActivity() {
         val loginbtn = findViewById<Button>(R.id.login_btn)
         loginbtn.setOnClickListener {
 
-            val url = Verwaltung.getKey( Verwaltung.main +  "/api/v1/account/login")
+            val url =  ( Verwaltung.main +  "/login")
             val emai_txt = "${email.editText?.text}"
             val password_txt = "${password.editText?.text}"
             val asynclogin = Fuel.post(
@@ -47,9 +47,12 @@ class LoginActivity : AppCompatActivity() {
                     }
                     is Result.Success -> {
                         try {
-                            val session = JSONObject(result.get()).getString("session")
+                            Log.d("RESZULTD",result.get())
+                            if(result.get() != "")
+                                throw Exception()
+                            val session = response.headers.get("Set-Cookie").asIterable().toList()[1].split(";")[0]
 
-
+                            Log.d("Login_Html" , result.get())
                             with(sharedPref!!.edit()) {
                                 putString("SessionID", session)
                                 putString("password",  password_txt)

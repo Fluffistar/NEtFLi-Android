@@ -2,6 +2,7 @@ package io.fluffistar.NEtFLi.Backend
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,10 @@ import com.squareup.picasso.Picasso
 import io.fluffistar.NEtFLi.R
 import io.fluffistar.NEtFLi.Serializer.Serie
 import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.ArrayList
 
 
@@ -51,11 +56,18 @@ class CustomAdapterRecycler(private val context: Context ,private val dataSet: L
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         val item = dataSet[position]
-
-
-        viewHolder.textView.text = (if(item?.name!!.length <= 16) item.name else item.name?.substring(0, 16)+"...")
-        Picasso.get().load(Verwaltung.main + item?.cover).into(viewHolder.image);
-
+        GlobalScope.launch(Dispatchers.Unconfined) {
+        item.load()
+            Log.d("Cover ${item.name}",item.cover)
+            withContext(Dispatchers.Main) {
+                viewHolder.textView.text =
+                    (if (item?.name!!.length <= 16) item.name else item.name?.substring(
+                        0,
+                        16
+                    ) + "...")
+                Picasso.get().load(item?.cover).into(viewHolder.image);
+            }
+        }
 
 
 
@@ -66,7 +78,10 @@ class CustomAdapterRecycler(private val context: Context ,private val dataSet: L
                 this.context,
                 SeriesPage::class.java
             )
-            intent.putExtra("ID", item.id)
+            item.loadSeasons()
+
+            Verwaltung.SelectedSerie =item
+
             this.context.startActivity(intent)
 
         }

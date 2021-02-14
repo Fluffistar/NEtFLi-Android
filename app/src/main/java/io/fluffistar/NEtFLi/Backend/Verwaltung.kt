@@ -1,8 +1,6 @@
 package io.fluffistar.NEtFLi.Backend
 
-import android.R.attr
 import android.content.Context
-import android.os.Environment
 import android.util.Log
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
@@ -11,8 +9,10 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
 import java.io.*
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -22,10 +22,31 @@ class Language(val id: Int, val lang: String)
 
 class Verwaltung {
     companion object{
+
+        fun getBetween(html: String, start: String, end: String) : String{
+
+            val regex =  """(?<=$start)(.*)(?=$end)""".toRegex()
+            val cryptlink = regex.find(html)?.value.orEmpty()
+            return  cryptlink
+        }
+
+        fun getBetween2(html: String, start: String, end: String):String{
+            val Start: Int
+            val End: Int
+            return if (html.contains(start) && html.contains(end)) {
+                Start = html.indexOf(start, 0) + start.length
+                End = html.indexOf(end, Start)
+                html.substring(Start, End  )
+            } else {
+                ""
+            }
+        }
+
+
         val main ="https://s.to/"
-        var SelectedSerie : SelectedSerie? = null
+        var SelectedSerie : Serie? = null
         var Session : String = ""
-        var Settings : Settings = Settings(false ,false,false)
+        var Settings : Settings = Settings(false, false, false)
         val allSerie: String = "api/v1/series/list?extended=1&category=0"
         var Neu: String = "api/v1/series/list?extended=1&category=2"
         var Top: String = "api/v1/series/list?extended=1&category=3"
@@ -37,135 +58,116 @@ class Verwaltung {
         val Languages : MutableList<Language> = mutableListOf()
         var _hosternames = arrayOf<String>("Vivo", "VOE", "Vidoza", "Streamtape")
         var linkname = arrayOf<String>(
-                "Abenteuer",
-                "Action",
-                "Animation",
-                "Anime",
-                "Comedy",
-                "Dokumentation",
-                "Dokusoap",
-                "Drama",
-                "Dramedy",
-                "Familie",
-                "Fantasy",
-                "History",
-                "Horror",
-                "Jugend",
-                "Kinderserie",
-                "Krankenhaus",
-                "Krimi",
-                "Mystery",
-                "Romantik",
-                "Science-Fiction",
-                "Sitcom",
-                "Telenovela",
-                "Thriller",
-                "Western",
-                "Zeichentrick",
-                "K-Drama",
-                "Reality-Tv",
-                "Netflix-Originals",
-                "Amazon-Originals"
+            "Abenteuer",
+            "Action",
+            "Animation",
+            "Anime",
+            "Comedy",
+            "Dokumentation",
+            "Dokusoap",
+            "Drama",
+            "Dramedy",
+            "Familie",
+            "Fantasy",
+            "History",
+            "Horror",
+            "Jugend",
+            "Kinderserie",
+            "Krankenhaus",
+            "Krimi",
+            "Mystery",
+            "Romantik",
+            "Science-Fiction",
+            "Sitcom",
+            "Telenovela",
+            "Thriller",
+            "Western",
+            "Zeichentrick",
+            "K-Drama",
+            "Reality-Tv",
+            "Netflix-Originals",
+            "Amazon-Originals"
         )
 
         var laoded = false
-        var _AllSeries : Series = Series(mutableListOf())
-        var _NeuSeries : Series = Series(mutableListOf())
-        var _BeliebtSeries : Series = Series(mutableListOf())
-        var _TopSeries : Series = Series(mutableListOf())
+        var _AllSeries : MutableList<Serie> =  (mutableListOf())
+        var _NeuSeries : MutableList<Serie> =  (mutableListOf())
+        var _BeliebtSeries : MutableList<Serie> =  (mutableListOf())
+  //      var _TopSeries : Series = Series(mutableListOf())
         var _WatchSeries : Series = Series(mutableListOf())
-        var _Sublist :Series = Series(mutableListOf())
+  //      var _Sublist :Series = Series(mutableListOf())
         private var gen = false
+        val otherpattern = """(?<=<h3>)(.*)(?=<span)""".toRegex()
+        val urlall  =  URL("https://s.to/serien")
+        val urlbeliebt = URL("https://s.to/beliebte-serien")
+        val urlnewu = URL("https://s.to/neu")
         fun Setup(context: Context) = runBlocking {
 
-            val sharedPref = context.getSharedPreferences(  "data",Context.MODE_PRIVATE)
-            Session = sharedPref.getString( "SessionID", "").orEmpty()
-
-            _WatchSeries.series.clear()
-            _Sublist.series.clear()
-            val mainurl = main + getKey(allSerie)
-            val topurl = main + getKey(Top)
-            val neuurl = main + getKey(Neu)
-            val beliebturl = main + getKey(Beliebt)
-
-            laodSettings(context)
-
-            val allseriesdata =  getJson(mainurl)
-            var watchseriesdata = ""
-            var sublist = ""
-            val topseriesdata = getJson(topurl)
-            val neuseriesdata = getJson(neuurl)
-            val beliebtseriesdata = getJson(beliebturl)
-            if(Settings.synwatchlist)
-                  watchseriesdata = getWatch( main+ getKey("api/v1/account/watchlist/list"))
-            if(Settings.showsub)
-                  sublist = getWatch(main + getKey("api/v1/account/subscription/list"))
-            _AllSeries = Json.decodeFromString<Series>(allseriesdata);
-            GlobalScope.launch{
-            CreateGenreListe2()}.start()
-            Log.d("watchdata" , "fata : " +  watchseriesdata)
-            _NeuSeries = Json.decodeFromString<Series>(neuseriesdata);
-            _BeliebtSeries = Json.decodeFromString<Series>(beliebtseriesdata);
-            _TopSeries = Json.decodeFromString<Series>(topseriesdata);
+            val sharedPref = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+            Session = sharedPref.getString("SessionID", "").orEmpty()
             getWatchedSeries(context)
-            if(Settings.synwatchlist){
-                val json : Series =  Json.decodeFromString<Series>(watchseriesdata)
-                for(i in json.series){
-                    if(_WatchSeries.series.find { it.id == i.id } == null)
-                        _WatchSeries.series.add(_AllSeries.series.find { it.id == i.id }!!)
+              val conn: HttpURLConnection =
+            urlall.openConnection() as HttpURLConnection // create a connection
+            var input: String = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+            val allpatern = """<a data-alternative-title=(.*?) href(.*?)</a>""".toRegex()
+            input = input.replace("\n", "").split("id=\"seriesContainer\"")[1]
+            val genres = input.split("</ul>")
+            val genpmap =   genres.pmap {
+                val all = allpatern.findAll(it)
+
+                all.asIterable().pmap { it2 ->
+
+                    val s = Serie(it2, it)
+                    _AllSeries.add(s)
+
                 }
-            }
-
-
-
-
-
-            if(Settings.showsub){
-                _Sublist = Series(mutableListOf())
-                val json : Series =  Json.decodeFromString<Series>(sublist)
-                for(i in json.series){
-
-                        _Sublist.series.add(_AllSeries.series.find { it.id == i.id }!!)
-                }
-            }
-            while (gen == false){
 
             }
 
+            val conn2: HttpURLConnection =
+                urlbeliebt.openConnection() as HttpURLConnection // create a connection
+            var input2: String = conn2.inputStream.bufferedReader().use(BufferedReader::readText)
+            val beliebtdata =  otherpattern.findAll(input2)
+            beliebtdata.asIterable().pmap { match->
+                val s=  _AllSeries.find { it.name == match.groupValues[1] }
+                if (s != null)
+                    _BeliebtSeries.add(s)
+            }
+            val conn3: HttpURLConnection =
+                urlnewu.openConnection() as HttpURLConnection // create a connection
+            var input3: String = conn3.inputStream.bufferedReader().use(BufferedReader::readText)
+            val newseriedata =  otherpattern.findAll(input3)
+            var new = newseriedata.asIterable().pmap {
 
-            Verwaltung.laoded =  true
+                    match->
+                val s=  _AllSeries.find { it.name == match.groups[1]?.value }
+                if (s != null)
+                    _NeuSeries.add(s)
+            }
 
-
-
-            HosterNames.add(HosterName(1, "Vivo"))
-            HosterNames.add(HosterName(2, "VOE"))
-            HosterNames.add(HosterName(3, "Vidoza"))
-            HosterNames.add(HosterName(4, "Streamtape"))
-
-            //add LAngues
-            Languages.add(Language(1, "German"))
-            Languages.add(Language(2, "English"))
-            Languages.add(Language(3, "German Sub"))
+                laoded = true
 
         }
-
+        suspend fun <A, B> Iterable<A>.pmap(f: suspend (A) -> B): List<B> = coroutineScope {
+            map { async { f(it) } }.awaitAll()
+        }
         suspend fun GetSerie(id: String): SelectedSerie {
             return Json{ignoreUnknownKeys = true}.decodeFromString<SelectedSerie>(
-                    getJson(
-                            getKey(
-                                    main + SerieGet + id
-                            )
+                getJson(
+                    getKey(
+                        main + SerieGet + id
                     )
+                )
             );
         }
 
         fun saveSettings(context: Context){
             val string =   Json.encodeToString(Settings)
-            createfile("setting.json",string,context)
+            createfile("setting.json", string, context)
         }
 
         fun laodSettings(context: Context){
-            val string  = readFromFile(context,"setting.json")
+            val string  = readFromFile(context, "setting.json")
             if(!string.isNullOrBlank())
               Settings =  Json { ignoreUnknownKeys = true }.decodeFromString(string)
 
@@ -173,26 +175,15 @@ class Verwaltung {
 
        suspend  fun getJson(url: String) : String = suspendCoroutine {
 
-           cont-> geturl(url)   { cont.resume(it) }
+               cont-> geturl(url)   { cont.resume(it) }
              }
-        fun CreateGenreListe2()
-        {
-            for(i in 0..28)
-            {
-                val gen =  Genres(
-                        linkname[i],
-                        _AllSeries.series.filter { it.genre.toInt() == i + 1 });
-                AllGenres.add(gen);
-            }
 
-            gen =true
-        }
          fun geturl(url: String, callback: (String) -> Unit){
 
             Thread {
                 Log.d("allSerie", "geturl")
                 val (_, _, result) = Fuel.get(url)
-                        .responseString()
+                    .responseString()
                 Log.d("allSerie", "geturl")
                 when (result) {
                     is Result.Failure -> {
@@ -211,6 +202,16 @@ class Verwaltung {
             }.start()
     }
 
+
+
+
+
+
+        suspend fun  processfinsihed() =  withContext(Dispatchers.IO){
+            launch { laoded = true }
+        }
+
+
         suspend  fun getWatch(url: String) : String = suspendCoroutine {
 
                 cont-> geturlWatch(url)   { cont.resume(it) }
@@ -219,7 +220,10 @@ class Verwaltung {
 
             Thread {
                 Log.d("allSerie", "geturl")
-                val (_, _, result) = Fuel.post(url ).header( "Cookie" , "SSTOSESSION=${Verwaltung.Session}"   )
+                val (_, _, result) = Fuel.post(url).header(
+                    "Cookie",
+                    "SSTOSESSION=${Verwaltung.Session}"
+                )
                     .responseString()
                 Log.d("allSerie", "geturl")
                 when (result) {
@@ -240,7 +244,7 @@ class Verwaltung {
         }
 
 
-        private fun readFromFile(context: Context , file: String): String? {
+        private fun readFromFile(context: Context, file: String): String? {
 
             var ret = ""
             try {
@@ -265,51 +269,33 @@ class Verwaltung {
         }
 
 
-        fun addwatch(s: SelectedSerie , context: Context){
+        fun addwatch(s: Serie, context: Context){
 
-            if(_WatchSeries.series.find { it.id == s.series.id } == null)
-                 _WatchSeries.series.add(s.series)
+            if(_WatchSeries.series.find { it.name == s.name } == null)
+                 _WatchSeries.series.add(s)
             else {
-                _WatchSeries.series.removeAll { it.id == s.series.id }
-                _WatchSeries.series.add(s.series)
+                _WatchSeries.series.removeAll { it.name == s.name }
+                _WatchSeries.series.add(s)
             }
             val string =   Json.encodeToString(_WatchSeries)
-            createfile("watch.json",string,context)
-            Thread {
-                Fuel.post(getKey("https://s.to/api/v1/account/watchlist/add"), listOf("id" to s.series.id))
-                    .header("Cookie", "SSTOSESSION=${Verwaltung.Session}")
-                    .responseString { _, _, result ->
-                        Log.d("allSerie", "geturl")
-                        when (result) {
-                            is Result.Failure -> {
-                                Log.d("allSerie", result.getException().toString())
+            Log.d("watchjson",string.toString())
+            createfile("watch.json", string, context)
 
-
-                            }
-                            is Result.Success -> {
-                                val data = result.get()
-                                Log.d("allSerie", data)
-                                //
-
-
-                            }
-
-                        }
-                    }
-            }.start()
 
         }
 
         fun getWatchedSeries(context: Context)  {
 
 
-           val string  = readFromFile(context,"watch.json")
+           val string  = readFromFile(context, "watch.json")
+            Log.d("watchjson",string.toString())
               if(!string.isNullOrBlank()){
                val json: Series = Json { ignoreUnknownKeys = true }.decodeFromString(string)
-                  for(s in json.series)
-                      if(_WatchSeries.series.find { it.id == s.id } == null)
+                  for(s in json.series) {
+                      Log.d("SeriesWAtched", s.name)
+                      if (_WatchSeries.series.find { it.name == s.name } == null)
                           _WatchSeries.series.add(s)
-
+                  }
             }else
                 _WatchSeries = Series(mutableListOf())
         }
@@ -317,7 +303,12 @@ class Verwaltung {
         fun createfile(file: String, data: String, context: Context){
 
             try {
-                val outputStreamWriter = OutputStreamWriter(context.openFileOutput(  file, Context.MODE_PRIVATE))
+                val outputStreamWriter = OutputStreamWriter(
+                    context.openFileOutput(
+                        file,
+                        Context.MODE_PRIVATE
+                    )
+                )
                 outputStreamWriter.write(data)
                 outputStreamWriter.close()
             } catch (e: IOException) {

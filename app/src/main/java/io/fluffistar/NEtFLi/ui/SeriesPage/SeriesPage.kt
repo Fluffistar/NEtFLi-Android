@@ -10,13 +10,11 @@ import android.widget.AdapterView.OnItemSelectedListener
 import androidx.appcompat.app.AppCompatActivity
 import com.squareup.picasso.Picasso
 import io.fluffistar.NEtFLi.Backend.TMDB
+import io.fluffistar.NEtFLi.Backend.TVResult
 import io.fluffistar.NEtFLi.Backend.Verwaltung
 import io.fluffistar.NEtFLi.EpisodeView
 import io.fluffistar.NEtFLi.R
-import io.fluffistar.NEtFLi.Serializer.Seaso
-import io.fluffistar.NEtFLi.Serializer.Seasons
-import io.fluffistar.NEtFLi.Serializer.SelectedSerie
-import io.fluffistar.NEtFLi.Serializer.TvShow2
+import io.fluffistar.NEtFLi.Serializer.*
 import io.fluffistar.NEtFLi.Videoplayer
 import kotlinx.coroutines.*
 
@@ -27,7 +25,7 @@ class SeriesPage : AppCompatActivity() {
           lateinit var backbtn : ImageView
         lateinit var text  : TextView
         lateinit var  title : TextView
-        lateinit var serie :SelectedSerie
+        lateinit var serie : Serie
         lateinit var comboseason : Spinner
         lateinit var episodelist : LinearLayout
           var tv : TvShow2? = null
@@ -54,68 +52,91 @@ class SeriesPage : AppCompatActivity() {
 
     }
 
-    fun createlist(){
-        var actual : Seaso? = null
-        episodelist.removeAllViewsInLayout()
-        val index = serie!!.SeasonsList[comboseason.selectedItemId.toInt()].id
-        if(tv != null)
-         actual = tv!!.seasons.find { it.seasonNumber.toInt() == index }
-        var i = 0
-        for (episode in serie!!.SeasonsList[comboseason.selectedItemId.toInt()].episodes){
+    fun createlist()    {
 
-            val epi = EpisodeView(this)
-            epi.title = "${i+1}. "+  if(episode.german != "") episode.german else episode.english
-            epi.text = if(episode.description.length < 140) episode.description else episode.description.substring(0,140) + "..."
-            epi.id = episode.episode.toLong()
-            epi.season = episode.season.toLong()
-            try {
-                if (actual != null)
-                    epi.setImage(TMDB.ImgPath + actual!!.episodes[i].stillPath)
-            }catch (ex: Exception){Log.d("ERROR", ex.message.toString())}
+       val job: Job = GlobalScope.launch(context = Dispatchers.Default) {
+            serie!!.SeasonsList[comboseason.selectedItemId.toInt()].load()
+        }
+        job.start()
 
-            epi.setOnClickListener {
-                // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
 
-                val intent = Intent(
+            while(!job.isCompleted){}
+            var actual: Seaso? = null
+            episodelist.removeAllViewsInLayout()
+            val index = serie!!.SeasonsList[comboseason.selectedItemId.toInt()].Season
+            if (tv != null)
+                actual = tv!!.seasons.find { it.seasonNumber.toInt() == index }
+            var i = 0
+            for (episode in serie!!.SeasonsList[comboseason.selectedItemId.toInt()].Episodes) {
+                runOnUiThread {
+                val epi = EpisodeView(this)
+                epi.title =
+                    "${i + 1}. " + if (episode.german != "") episode.german else episode.english
+                    if(actual!=null && !actual!!.episodes.isNullOrEmpty())
+                        epi.text = if(actual!!.episodes[i].overview.length < 140) actual!!.episodes[i].overview else actual!!.episodes[i].overview.substring(0,140) + "..."
+                    else
+                        epi.text = "No Data Found"
+                epi.id = episode.Episode.toLong()
+                epi.season = episode.Season.toLong()
+                try {
+                    if (actual != null)
+                        epi.setImage(TMDB.ImgPath + actual!!.episodes[i].stillPath)
+                } catch (ex: Exception) {
+                    Log.d("ERROR", ex.message.toString())
+                }
+
+                epi.setOnClickListener {
+                    // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(
                         this.applicationContext,
                         Videoplayer::class.java
-                )
+                    )
 
-                Verwaltung.SelectedSerie = serie
-                Verwaltung.SelectedSerie!!.SelectedEpisode  = epi.id!!.toInt()-1
+                    Verwaltung.SelectedSerie = serie
+                    Verwaltung.SelectedSerie!!.lastepisode = epi.id!!.toInt() - 1
 
-                Verwaltung.SelectedSerie!!.SelectedSeason = comboseason.selectedItemPosition
+                    Verwaltung.SelectedSerie!!.lastseason = comboseason.selectedItemPosition
 
-                startActivity(intent)
+                    startActivity(intent)
 
+                }
+
+                    episodelist.addView(epi)
+                }
+
+                i++
             }
 
-            episodelist.addView(epi)
-            i++
-        }
     }
+
 
 
      fun SetupSerie(){
         GlobalScope.launch(Dispatchers.Unconfined) {
 
 
-            serie =   Verwaltung.GetSerie(id.toString())
+            serie = Verwaltung.SelectedSerie!!
 
     try {
 
+            if(serie.TVResult == null)
+             tv = TMDB.getTV(serie!!);
+            else
+                tv = TMDB.getTV2(serie!!);
 
-            tv = TMDB.getTV(serie!!);
-            TMDB.GetTvEpisodes(tv!!);}catch (ex : java.lang.Exception){ }
+            TMDB.GetTvEpisodes(tv!!)
+    }catch (ex : java.lang.Exception){ }
 
-            serie!!.CreateSeasons();
+
 
             withContext(Dispatchers.Main) {
                 // blocking I/O operations
 
-            Picasso.get().load(Verwaltung.main + serie!!.series.cover).into(img);
-            title.text = serie!!.series.name
-            text.text = if (serie!!.series.description.length < 170) serie!!.series.description else serie!!.series.description.substring(0, 167) + "..."
+            Picasso.get().load(  serie!!.cover).into(img);
+            title.text = serie!!.name
+                if(serie!!.TVResult != null)
+                    text.text = if (serie!!.TVResult?.overview?.length!! < 170) serie!!.TVResult?.overview!! else serie!!.TVResult?.overview!!.substring(0, 167) + "..."
 
             comboseason.setSelection(0)
 
@@ -138,7 +159,7 @@ class SeriesPage : AppCompatActivity() {
     }
 
     fun load(){
-        comboseason.adapter = ArrayAdapter<Seasons>(
+        comboseason.adapter = ArrayAdapter<Serie.SeasonSTO>(
                 this ,
                 R.layout.spinner_item,
                 serie!!.SeasonsList

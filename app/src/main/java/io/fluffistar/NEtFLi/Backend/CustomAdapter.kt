@@ -4,6 +4,7 @@ package io.fluffistar.NEtFLi.Backend
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,10 @@ import com.squareup.picasso.Picasso
 import io.fluffistar.NEtFLi.R
 import io.fluffistar.NEtFLi.Serializer.Serie
 import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 
@@ -41,19 +46,25 @@ class CustomAdapter(context: Context, resource: Int, objects: List<Serie>) : Arr
 
         // get the item using the  position param
         val item: Serie = items_list[position]
-        v.id = item.id.toInt()
-        Picasso.get().load(Verwaltung.main + item.cover).into(imageView);
-        textView.text =(if(item?.name!!.length <= 16) item.name else item.name?.substring(0, 16)+"...")
+        GlobalScope.launch(Dispatchers.Unconfined) {
+            item.load()
+            Log.d("Cover ${item.name}",item.cover)
+            withContext(Dispatchers.Main) {
+                Picasso.get().load(item.cover).into(imageView);
+                textView.text = (if (item?.name!!.length <= 16) item.name else item.name?.substring(
+                    0,
+                    16
+                ) + "...")
 
-
+            }}
 
         v.setOnClickListener{
-
+            Verwaltung.SelectedSerie = item
             val intent = Intent(
                     context,
                     SeriesPage::class.java
             )
-            intent.putExtra("ID", item.id)
+
             context.startActivity(intent)
 
         }
