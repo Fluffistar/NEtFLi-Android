@@ -5,35 +5,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/maincolor"
+    android:id="@+id/settingfragment"
     tools:context=".ui.settings.SettingFragment">
 
-    <TextView
-        android:id="@+id/info_settings"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_centerHorizontal="true"
-        android:textColor="@color/white"
-        android:layout_marginTop="50dp"
-        android:textSize="26dp"
-        android:text="Mehr Features in der Zunkunt"
-        />
 
-        <LinearLayout
-            android:layout_below="@+id/info_settings"
-            android:layout_centerHorizontal="true"
-            android:layout_width="wrap_content"
-            android:orientation="vertical"
-            android:layout_height="wrap_content">
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:orientation="horizontal">
+
+
+
                 <TextView
+                   android:layout_marginTop="50dp"
+                    android:layout_marginLeft="20dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Autoplay Specialepisodes"
+                    android:id="@+id/labelautospecial"
                     android:textColor="@color/white"
                     />
                 <androidx.appcompat.widget.SwitchCompat
+                     android:layout_alignTop="@id/labelautospecial"
+                    android:layout_toRightOf="@id/labelautospecial"
                     android:id="@+id/autoplay_settings"
                     android:layout_width="match_parent"
                     android:layout_height="46dp"
@@ -46,63 +36,17 @@
                     app:showText="false"
                     android:textOff="OFF"
                     android:textOn="ON" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                tools:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Show MySublist"
-                    android:textColor="@color/white" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/sublist_settings"
-                    android:layout_width="match_parent"
-                    android:layout_height="46dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="16dp"
-                    android:checked="false"
-                    android:longClickable="false"
-                    android:textOff="OFF"
-                    android:textOn="ON"
-                    android:textSize="4dp"
-                    app:showText="false"
-                    app:theme="@style/Theme.NEtFLi" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Sync MyWatchlist"
-                    android:textColor="@color/white" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/watchlist_settings"
-                    android:layout_width="match_parent"
-                    android:layout_height="46dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="16dp"
-                    android:checked="false"
-                    android:longClickable="false"
-                    android:textOff="OFF"
-                    android:textOn="ON"
-                    android:textSize="4dp"
-                    app:showText="false"
-                    app:theme="@style/Theme.NEtFLi" />
-            </LinearLayout>
-
-        </LinearLayout>
 
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/updatebtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search for Update"
+        android:textSize="26dp"
+        android:backgroundTint="@color/orange"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_centerHorizontal="true"
+         />
 </RelativeLayout>

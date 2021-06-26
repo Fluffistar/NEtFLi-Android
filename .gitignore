@@ -14,3 +14,4 @@
 .cxx
 local.properties
 app/src/main/java/io/fluffistar/NEtFLi/Backend/APIKEY.kt
+app/google-services.json

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
 import io.fluffistar.NEtFLi.Backend.Verwaltung
+import io.fluffistar.NEtFLi.Backendv2.Start
 import io.fluffistar.NEtFLi.MainActivity
 import io.fluffistar.NEtFLi.R
 import org.json.JSONObject
@@ -19,7 +20,7 @@ import java.lang.Exception
 
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        val sharedPref = this.getSharedPreferences(  "data",Context.MODE_PRIVATE)
+        val sharedPref = this.applicationContext.getSharedPreferences(  "data",Context.MODE_PRIVATE)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.loginlayout)
         findViewById<TextView>(R.id.login_txt_register).movementMethod = LinkMovementMethod.getInstance();
@@ -30,7 +31,7 @@ class LoginActivity : AppCompatActivity() {
         val loginbtn = findViewById<Button>(R.id.login_btn)
         loginbtn.setOnClickListener {
 
-            val url =  ( Verwaltung.main +  "/login")
+            val url =  ( Start.Domain +  "/login")
             val emai_txt = "${email.editText?.text}"
             val password_txt = "${password.editText?.text}"
             val asynclogin = Fuel.post(

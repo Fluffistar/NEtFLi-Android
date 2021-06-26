@@ -1,21 +1,24 @@
 package io.fluffistar.NEtFLi.ui.SeriesPage
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.*
 import android.widget.AdapterView.OnItemSelectedListener
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
+import io.fluffistar.NEtFLi.Backend.EpisodeAdapter
 import io.fluffistar.NEtFLi.Backend.TMDB
-import io.fluffistar.NEtFLi.Backend.TVResult
-import io.fluffistar.NEtFLi.Backend.Verwaltung
-import io.fluffistar.NEtFLi.EpisodeView
+import io.fluffistar.NEtFLi.Backendv2.Season
+import io.fluffistar.NEtFLi.Backendv2.Serie
+import io.fluffistar.NEtFLi.Backendv2.Start
 import io.fluffistar.NEtFLi.R
-import io.fluffistar.NEtFLi.Serializer.*
-import io.fluffistar.NEtFLi.Videoplayer
+import io.fluffistar.NEtFLi.Serializer.TvShow2
+
 import kotlinx.coroutines.*
 
 
@@ -27,11 +30,12 @@ class SeriesPage : AppCompatActivity() {
         lateinit var  title : TextView
         lateinit var serie : Serie
         lateinit var comboseason : Spinner
-        lateinit var episodelist : LinearLayout
+        lateinit var episodelist : RecyclerView
           var tv : TvShow2? = null
-
+    private var mFirebaseAnalytics: FirebaseAnalytics? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mFirebaseAnalytics = Firebase.analytics
         setContentView(R.layout.activity_series_page)
         setSupportActionBar(findViewById(R.id.toolbar))
         img = findViewById(R.id.img_SeriePage)
@@ -42,8 +46,10 @@ class SeriesPage : AppCompatActivity() {
         id = intent.extras?.getLong("ID");
         backbtn = findViewById(R.id.backbtn_SeriePage)
        // Toast.makeText(this,"${id}",Toast.LENGTH_SHORT)
-
-
+        episodelist.setLayoutManager( LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        episodelist.setHasFixedSize(true);
+        episodelist.setItemViewCacheSize(20);
+        episodelist.setDrawingCacheEnabled(true);
                 SetupSerie()
 
 
@@ -52,98 +58,42 @@ class SeriesPage : AppCompatActivity() {
 
     }
 
-    fun createlist()    {
+    fun createlist()   = runBlocking(context = Dispatchers.IO)  {
 
-       val job: Job = GlobalScope.launch(context = Dispatchers.Default) {
-            serie!!.SeasonsList[comboseason.selectedItemId.toInt()].load()
-        }
-        job.start()
+        serie!!.Seasons[comboseason.selectedItemId.toInt()].load()
 
 
-            while(!job.isCompleted){}
-            var actual: Seaso? = null
-            episodelist.removeAllViewsInLayout()
-            val index = serie!!.SeasonsList[comboseason.selectedItemId.toInt()].Season
-            if (tv != null)
-                actual = tv!!.seasons.find { it.seasonNumber.toInt() == index }
-            var i = 0
-            for (episode in serie!!.SeasonsList[comboseason.selectedItemId.toInt()].Episodes) {
-                runOnUiThread {
-                val epi = EpisodeView(this)
-                epi.title =
-                    "${i + 1}. " + if (episode.german != "") episode.german else episode.english
-                    if(actual!=null && !actual!!.episodes.isNullOrEmpty())
-                        epi.text = if(actual!!.episodes[i].overview.length < 140) actual!!.episodes[i].overview else actual!!.episodes[i].overview.substring(0,140) + "..."
-                    else
-                        epi.text = "No Data Found"
-                epi.id = episode.Episode.toLong()
-                epi.season = episode.Season.toLong()
-                try {
-                    if (actual != null)
-                        epi.setImage(TMDB.ImgPath + actual!!.episodes[i].stillPath)
-                } catch (ex: Exception) {
-                    Log.d("ERROR", ex.message.toString())
-                }
-
-                epi.setOnClickListener {
-                    // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
-
-                    val intent = Intent(
-                        this.applicationContext,
-                        Videoplayer::class.java
-                    )
-
-                    Verwaltung.SelectedSerie = serie
-                    Verwaltung.SelectedSerie!!.lastepisode = epi.id!!.toInt() - 1
-
-                    Verwaltung.SelectedSerie!!.lastseason = comboseason.selectedItemPosition
-
-                    startActivity(intent)
-
-                }
-
-                    episodelist.addView(epi)
-                }
-
-                i++
-            }
 
     }
 
 
 
      fun SetupSerie(){
-        GlobalScope.launch(Dispatchers.Unconfined) {
-
-
-            serie = Verwaltung.SelectedSerie!!
-
-    try {
-
-            if(serie.TVResult == null)
-             tv = TMDB.getTV(serie!!);
-            else
-                tv = TMDB.getTV2(serie!!);
-
-            TMDB.GetTvEpisodes(tv!!)
-    }catch (ex : java.lang.Exception){ }
 
 
 
-            withContext(Dispatchers.Main) {
+            serie = Start.SelectedSerie!!
+
+
+
+
+       createlist()
+         comboseason.setSelection(0)
                 // blocking I/O operations
 
-            Picasso.get().load(  serie!!.cover).into(img);
-            title.text = serie!!.name
-                if(serie!!.TVResult != null)
-                    text.text = if (serie!!.TVResult?.overview?.length!! < 170) serie!!.TVResult?.overview!! else serie!!.TVResult?.overview!!.substring(0, 167) + "..."
+            Picasso.get().load(  serie.poster).into(img);
+            title.text = serie.Title
 
-            comboseason.setSelection(0)
+            text.text =  serie.despriction
 
-            createlist()
+
+
             comboseason.onItemSelectedListener = object : OnItemSelectedListener {
                 override fun onItemSelected(parentView: AdapterView<*>?, selectedItemView: View?, position: Int, id: Long) {
                     createlist()
+                    episodelist.adapter = EpisodeAdapter(
+                        this@SeriesPage,
+                        serie!!.Seasons[comboseason.selectedItemId.toInt()].Episodes, comboseason.selectedItemPosition)
                 }
 
                 override fun onNothingSelected(parentView: AdapterView<*>?) {
@@ -151,18 +101,18 @@ class SeriesPage : AppCompatActivity() {
                 }
             }
                 load()
-            }
 
 
-        }
+
+
 
     }
 
     fun load(){
-        comboseason.adapter = ArrayAdapter<Serie.SeasonSTO>(
+        comboseason.adapter = ArrayAdapter<Season>(
                 this ,
-                R.layout.spinner_item,
-                serie!!.SeasonsList
+               R.layout.spinner_item,
+                serie!!.Seasons
         )
     }
 }

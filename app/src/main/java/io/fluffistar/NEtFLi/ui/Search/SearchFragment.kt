@@ -1,6 +1,5 @@
 package io.fluffistar.NEtFLi.ui.Search
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,28 +7,33 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import io.fluffistar.NEtFLi.Backend.CustomAdapter
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
+import io.fluffistar.NEtFLi.Backend.SerienAdapter
 import io.fluffistar.NEtFLi.Backend.Verwaltung
-import io.fluffistar.NEtFLi.EpisodeView
+import io.fluffistar.NEtFLi.Backendv2.Start
 import io.fluffistar.NEtFLi.R
-import io.fluffistar.NEtFLi.Serializer.Serie
 import io.fluffistar.NEtFLi.SerieVIEW
-import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
+import io.fluffistar.NEtFLi.calculateNoOfColumns
+import io.fluffistar.NEtFLi.pmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 
 class SearchFragment : Fragment() {
 
     private lateinit var searchtxt: AutoCompleteTextView
     private lateinit var searchbtn: ImageView
-    private lateinit var epilist : GridView
+    private lateinit var epilist : RecyclerView
 
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
 
         val root = inflater.inflate(R.layout.fragment_search, container, false)
@@ -37,49 +41,35 @@ class SearchFragment : Fragment() {
         searchtxt = root.findViewById(R.id.searchbox)
         searchbtn = root.findViewById(R.id.searchbtn)
         epilist = root.findViewById(R.id.searchepilist)
-
+        val mNoOfColumns: Int = calculateNoOfColumns(requireActivity().applicationContext,120f)
+        epilist.setLayoutManager(GridLayoutManager(requireContext(), mNoOfColumns))
         val searchlist :MutableList<String> = mutableListOf()
 
-        for(i in Verwaltung._AllSeries)
-            searchlist.add(i.name)
+        for(i in Start.Allseries)
+            searchlist.add(i.Title)
 
-        searchtxt.setAdapter(ArrayAdapter<String>(root.context,R.layout.spinner_item,searchlist))
+        searchtxt.setAdapter(ArrayAdapter<String>(root.context, R.layout.spinner_item, searchlist))
 
 
         searchbtn.setOnClickListener {
 
-
+GlobalScope.launch(Dispatchers.IO) {
 
             Log.d("clicl", "clicked")
-            var list = Verwaltung._AllSeries.filter { it.name.contains(searchtxt.text.toString(), ignoreCase = true) }.take(100)
-            Log.d("COUNT",list.size.toString())
-            var android : MutableList<SerieVIEW> = mutableListOf()
-          /*  for (i in list){
+            var list = Start.Allseries.filter { it.Title.contains(
+                searchtxt.text.toString(),
+                ignoreCase = true
+            ) }.take(100)
+            Log.d("COUNT", list.size.toString())
 
-                var s = SerieVIEW(root.context)
+            list.pmap {
+                it.load()
 
-                s.text = if(i.name.length <= 16) i.name else i.name.substring(0,13) + "..."
-                s.id =  i.id
-                s.setImage(Verwaltung.main + i.cover)
-
-                s.setPadding(0, 0, 10, 0)
-                s.setOnClickListener {
-                    // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
-
-                    val intent = Intent(
-                            root.context,
-                            SeriesPage::class.java
-                    )
-                    intent.putExtra("ID", s.id)
-                    root.context.startActivity(intent)
-
-                }
-
-                android.add(s)
-            }*/
-            var ad = CustomAdapter(root.context,R.layout.sample_serie_v_i_e_w,list)
-            epilist.adapter = ad;
-
+            }
+    withContext(Dispatchers.Main) {
+        var ad = SerienAdapter(requireContext(), list)
+        epilist.adapter = ad;
+    }}
 
         }
 

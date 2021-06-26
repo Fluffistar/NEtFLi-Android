@@ -11,7 +11,7 @@
         android:layout_height="25dp"
         android:gravity="center"
         android:textColor="@color/white"
-        android:text="Hello:"
+        android:text="Loading ..."
         />
 
 

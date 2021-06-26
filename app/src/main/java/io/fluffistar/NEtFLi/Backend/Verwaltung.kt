@@ -5,6 +5,7 @@ import android.util.Log
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
 import io.fluffistar.NEtFLi.Serializer.*
+import io.fluffistar.NEtFLi.pmap
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -43,7 +44,7 @@ class Verwaltung {
         }
 
 
-        val main ="https://s.to/"
+        val main ="https://serien.pro"
         var SelectedSerie : Serie? = null
         var Session : String = ""
         var Settings : Settings = Settings(false, false, false)
@@ -98,9 +99,9 @@ class Verwaltung {
   //      var _Sublist :Series = Series(mutableListOf())
         private var gen = false
         val otherpattern = """(?<=<h3>)(.*)(?=<span)""".toRegex()
-        val urlall  =  URL("https://s.to/serien")
-        val urlbeliebt = URL("https://s.to/beliebte-serien")
-        val urlnewu = URL("https://s.to/neu")
+        val urlall  =  URL("https://serien.pro/serien")
+        val urlbeliebt = URL("https://serien.pro/beliebte-serien")
+        val urlnewu = URL("https://serien.pro/neu")
         fun Setup(context: Context) = runBlocking {
 
             val sharedPref = context.getSharedPreferences("data", Context.MODE_PRIVATE)
@@ -115,12 +116,12 @@ class Verwaltung {
             val genpmap =   genres.pmap {
                 val all = allpatern.findAll(it)
 
-                all.asIterable().pmap { it2 ->
+          /*      all.pmap { it2 ->
 
                     val s = Serie(it2, it)
                     _AllSeries.add(s)
 
-                }
+                }*/
 
             }
 
@@ -128,30 +129,28 @@ class Verwaltung {
                 urlbeliebt.openConnection() as HttpURLConnection // create a connection
             var input2: String = conn2.inputStream.bufferedReader().use(BufferedReader::readText)
             val beliebtdata =  otherpattern.findAll(input2)
-            beliebtdata.asIterable().pmap { match->
+     /*       beliebtdata.asIterable().pmap { match->
                 val s=  _AllSeries.find { it.name == match.groupValues[1] }
                 if (s != null)
                     _BeliebtSeries.add(s)
-            }
+            }*/
             val conn3: HttpURLConnection =
                 urlnewu.openConnection() as HttpURLConnection // create a connection
             var input3: String = conn3.inputStream.bufferedReader().use(BufferedReader::readText)
             val newseriedata =  otherpattern.findAll(input3)
-            var new = newseriedata.asIterable().pmap {
+         /*   var new = newseriedata.asIterable().pmap {
 
                     match->
                 val s=  _AllSeries.find { it.name == match.groups[1]?.value }
                 if (s != null)
                     _NeuSeries.add(s)
-            }
+            }*/
 
                 laoded = true
 
         }
-        suspend fun <A, B> Iterable<A>.pmap(f: suspend (A) -> B): List<B> = coroutineScope {
-            map { async { f(it) } }.awaitAll()
-        }
-        suspend fun GetSerie(id: String): SelectedSerie {
+
+   suspend fun GetSerie(id: String): SelectedSerie {
             return Json{ignoreUnknownKeys = true}.decodeFromString<SelectedSerie>(
                 getJson(
                     getKey(
@@ -244,7 +243,7 @@ class Verwaltung {
         }
 
 
-        private fun readFromFile(context: Context, file: String): String? {
+        fun readFromFile(context: Context, file: String): String? {
 
             var ret = ""
             try {
@@ -272,7 +271,7 @@ class Verwaltung {
         fun addwatch(s: Serie, context: Context){
 
             if(_WatchSeries.series.find { it.name == s.name } == null)
-                 _WatchSeries.series.add(s)
+                _WatchSeries.series.add(s)
             else {
                 _WatchSeries.series.removeAll { it.name == s.name }
                 _WatchSeries.series.add(s)
@@ -318,9 +317,34 @@ class Verwaltung {
 
 
 
-        fun  getKey(s: String) : String =if (s.contains("?")) s+ "&key=${APIKEY.key}" else  s + "?key=${APIKEY.key}"
+     fun  getKey(s: String) : String =if (s.contains("?")) s+ "&key=${APIKEY.key}" else  s + "?key=${APIKEY.key}"
+
+        fun getUpdate(context: Context) : Pair<Boolean,String>   {
+
+             val  result = Fuel.get("https://api.github.com/repos/Fluffistar/NEtFLi-Android/releases").header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36").responseString ()
+
+            when(result.third){
+                is Result.Failure -> {
+                    return Pair(false,"")
+
+                }
+                is Result.Success -> {
+
+                   val release = Json { ignoreUnknownKeys = true ; coerceInputValues = true }.decodeFromString<List<Release2Item>>(result.third.get())[0]
 
 
+                    if(release.tag_name.replace(".","").toInt() > context.packageManager.getPackageInfo(context.packageName, 0).versionName .replace(".","").toInt()){
+
+                        return Pair(true,release.assets[0].browser_download_url!!)
+                    }
+
+
+                }
+            }
+                 return Pair(false,"")
+
+
+    }
 
 
 

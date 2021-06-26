@@ -73,6 +73,7 @@ class TVShow
     val   stillpath  :String
 )
 
+
 @Serializable
 data class TvShow2 (
     @SerialName( "backdrop_path")
@@ -81,7 +82,7 @@ data class TvShow2 (
 
 
      @SerialName(  "episode_run_time")
-    val episodeRunTime: List<Long>,
+    val episodeRunTime: List<Long>  ,
 
     @SerialName(  "first_air_date")
     val firstAirDate: String,

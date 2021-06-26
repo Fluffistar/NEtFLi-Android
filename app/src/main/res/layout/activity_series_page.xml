@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/maincolor"
     tools:context=".ui.SeriesPage.SeriesPage">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
+        android:id="@+id/Appbar_seriespage"
         android:layout_height="wrap_content"
         android:theme="@style/Theme.NEtFLi.AppBarOverlay">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp">
             <ImageView
+                android:layout_margin="2dp"
                 android:id="@+id/backbtn_SeriePage"
                 android:layout_width="50dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_back"
+                android:background="@color/maincolor"
 
                 />
             <androidx.appcompat.widget.Toolbar
@@ -31,31 +35,34 @@
 
 
     </com.google.android.material.appbar.AppBarLayout>
-<ScrollView
-    android:background="#FF1C1C1C"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <LinearLayout
 
+    <com.google.android.material.card.MaterialCardView
+        android:layout_below="@id/Appbar_seriespage"
+        android:background="@color/maincolor"
       android:layout_width="match_parent"
       android:orientation="vertical"
-      android:layout_height="match_parent">
-      <LinearLayout
+        android:layout_margin="5dp"
+        android:id="@+id/cardview_info_seriespage"
+        app:cardElevation="26dp"
+      android:layout_height="wrap_content">
+      <RelativeLayout
+
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:orientation="horizontal">
+          android:background="@color/maincolor"
+           >
 
           <ImageView
-              android:paddingLeft="16dp"
-              android:paddingTop="16dp"
+
               android:id="@+id/img_SeriePage"
               android:layout_width="150dp"
               android:layout_height="200dp"
               android:scaleType="fitXY"
-              android:paddingRight="10dp"
+               android:layout_margin="10dp"
               android:src="@color/cardview_dark_background"
               />
           <LinearLayout
+              android:layout_toRightOf="@id/img_SeriePage"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="wrap_content">
@@ -78,6 +85,7 @@
                   android:id="@+id/seasoncombo"
                   android:layout_width="wrap_content"
                   android:background="#FF1C1C1C"
+
                   android:foregroundTint="@color/white"
                   android:layout_alignParentRight="true"
                   android:layout_height="50dp" />
@@ -91,19 +99,20 @@
                   />
 
           </LinearLayout>
+      </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-      </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/episodelist"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_below="@id/cardview_info_seriespage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/episodelist"
+            />
 
-    </LinearLayout>
 
-  </LinearLayout>
 
-</ScrollView>
 
-</LinearLayout>
+
+
+</RelativeLayout>

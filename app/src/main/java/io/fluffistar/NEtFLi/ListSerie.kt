@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -15,14 +16,18 @@ import android.widget.GridView
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
+import androidx.annotation.RestrictTo
 import androidx.leanback.widget.HorizontalGridView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.fluffistar.NEtFLi.Backend.CustomAdapter
 import io.fluffistar.NEtFLi.Backend.CustomAdapterRecycler
-import io.fluffistar.NEtFLi.Backend.Verwaltung
-import io.fluffistar.NEtFLi.Serializer.Serie
+import io.fluffistar.NEtFLi.Backend.SerienAdapter
+import io.fluffistar.NEtFLi.Backendv2.Serie
+
 import io.fluffistar.NEtFLi.ui.SeriesPage.SeriesPage
+import kotlinx.coroutines.*
 
 /**
  * TODO: document your custom view class.
@@ -43,43 +48,63 @@ class ListSerie : LinearLayout {
         _text = findViewById(R.id.list_text)
 
     }
-    constructor(context: Context , list : List<Serie> , string: String   ):super(context  ){
 
-        val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    lateinit var adapter : SerienAdapter
+
+    fun Update(){
+        adapter.notifyDataSetChanged()
+    }
+
+    fun load (it :  Serie) = runBlocking {
 
 
 
-        inflater.inflate(R.layout.sample_list_serie,  this )
+    }
+
+    constructor(context: Context, list : List<Serie>, string: String   ):super(context  )  {
+        val inflater =
+            context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+
+
+
+    val  root =  inflater.inflate(R.layout.sample_list_serie, this)
         _panel = findViewById(R.id.list_Serie)
         _text = findViewById(R.id.list_text)
-        _panel.setLayoutManager( LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+        root.isEnabled = false
+Thread{
+            list.pmap {
+                it.load()
+                (context as Activity).runOnUiThread {
+                    Update()
+                    root.isEnabled = true
+                }
 
-        _panel.adapter = CustomAdapterRecycler(context,list)
-        _text.text = string
+            }}.start()
 
-    /*
 
-        for( i in list ){
+        (context as Activity).runOnUiThread {
+            adapter = SerienAdapter(context, list)
 
-            var s = SerieVIEW(context)
 
-            s.text = if(i.name.length <= 16) i.name else i.name.substring(0,13) + "..."
-            s.id =  i.id
-            s.setImage(Verwaltung.main + i.cover)
-
-            s.setPadding(0, 0, 10, 0)
-            s.setOnClickListener {
-                // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
-
-                val intent = Intent(
+            _panel.setLayoutManager(
+                LinearLayoutManager(
                     context,
-                    SeriesPage::class.java
+                    LinearLayoutManager.HORIZONTAL,
+                    false
                 )
-                intent.putExtra("ID", s.id)
-                context.startActivity(intent)
+            );
 
-            }
-            _panel.addView(s) }  */
+                _panel.adapter = adapter
+                _panel.setHasFixedSize(true);
+                _panel.setItemViewCacheSize(20);
+                _panel.setDrawingCacheEnabled(true);
+                _text.text = string
+
+}
+
+
+
 
 
         }

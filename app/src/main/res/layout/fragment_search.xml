@@ -37,22 +37,16 @@
 
 
 
-            <GridView
+            <androidx.recyclerview.widget.RecyclerView
 
                 android:id="@+id/searchepilist"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:horizontalSpacing="10dp"
-                android:numColumns="auto_fit"
-                android:verticalSpacing="10dp"
-                android:layout_marginLeft="20dp"
-                android:layout_below="@id/searchbox"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
 
-            </GridView>
+                android:layout_below="@id/searchbox"
+            >
+
+            </androidx.recyclerview.widget.RecyclerView>
 
 
 

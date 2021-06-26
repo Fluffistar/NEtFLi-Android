@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "152797356509",
+    "project_id": "netfli-android",
+    "storage_bucket": "netfli-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152797356509:android:38562d19842642f2519634",
+        "android_client_info": {
+          "package_name": "io.fluffistar.NEtFLi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "152797356509-rucda2je330v6h54jvs1i9su819h1epc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.fluffistar.NEtFLi",
+            "certificate_hash": "b2683f8731f946a7bb38474fb812a9a4d351dd14"
+          }
+        },
+        {
+          "client_id": "152797356509-0b6lt4e10ubueqo6gi7b77daona51flo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAueBxD3FCchg7P3hAocGONxYONytLppU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "152797356509-0b6lt4e10ubueqo6gi7b77daona51flo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

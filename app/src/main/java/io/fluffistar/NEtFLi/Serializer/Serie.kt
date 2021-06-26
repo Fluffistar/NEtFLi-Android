@@ -41,7 +41,7 @@ class Serie(): java.io.Serializable
 
         var Season :Int = -1
         var special = false ;
-
+        var loadedSeason = false
         var url_season =""
         val  Episodes : MutableList<EpisodeSTO> = mutableListOf()
 
@@ -99,7 +99,7 @@ class Serie(): java.io.Serializable
                         Episodes.add(EpisodeSTO(match, Season));
                     }
                 }
-
+                loadedSeason = true
             }
 
     }
@@ -248,7 +248,8 @@ class Serie(): java.io.Serializable
             cont->  vResult(_imdb)   { cont.resume(it) }
     }
     private var result = ""
-    suspend  fun load(){
+
+    suspend  fun load(): Boolean{
         if ( cover == "https://www.cmt.co.uk/skin/frontend/cmtgroup/default/images/placeholder2.jpg") {
             imdb = getImdbVal()
             productionStart = getproductionstart()
@@ -279,9 +280,11 @@ class Serie(): java.io.Serializable
                 );
             if (cover == "")
                 Log.d("result", result);
-
-
-    }}
+            return true
+    }
+        else
+        return true
+    }
 
      fun loadSeasons(){
         Log.d("LoadSeason","Started")

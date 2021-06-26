@@ -2,23 +2,44 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
 
-    package="io.fluffistar.NEtFLi">
+    package="io.fluffistar.NEtFLi"
+    tools:ignore="MissingLeanbackLauncher">
 
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher2"
-       android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen"
+       android:theme="@style/Theme.NEtFLi"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher2_round"
         android:supportsRtl="true"
-
+        android:largeHeap="true"
         android:usesCleartextTraffic="true">
-
-        <activity android:name=".SplashScreen" android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" >
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+        <meta-data
+            android:name="firebase_performance_logcat_enabled"
+            android:value="true" />
+        <activity android:name=".SplashScreen" android:theme="@style/Theme.NEtFLi" >
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,20 +53,20 @@
             android:label="@string/title_activity_videoplayer"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity"
-            android:theme="@style/Theme.NEtFLi.NoActionBar"
+            android:theme="@style/Theme.NEtFLi"
            />
         <activity
             android:name=".ui.LoginPage.LoginActivity"
             android:label="Login"
-            android:theme="@style/Theme.NEtFLi.NoActionBar" />
+            android:theme="@style/Theme.NEtFLi" />
         <activity
             android:name=".ui.SeriesPage.SeriesPage"
             android:label="@string/title_activity_series_page"
-            android:theme="@style/Theme.NEtFLi.NoActionBar" />
+            android:theme="@style/Theme.NEtFLi" />
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.NEtFLi.NoActionBar">
+
+            android:theme="@style/Theme.NEtFLi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
