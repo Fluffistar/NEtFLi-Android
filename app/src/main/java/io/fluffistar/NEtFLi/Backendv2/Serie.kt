@@ -66,7 +66,7 @@ public class Serie
             {
                 if (item.classname == "seriesCoverBox")
                 {
-                    poster = Start.Domain + item.getChild().src;
+                    poster = item.getChild().src;
                 }
                 if(item.classname == "backdrop")
                 {
@@ -188,7 +188,9 @@ public class Serie
             {
                 //implemet get tV by imd
                     Log.d("imdb: ", imdb)
-                TvShow = TMDB.getTV2(TMDB.getTVimdb(imdb).tv_results[0].id.toString())
+                var it = TMDB.getTVimdb(imdb).tv_results
+                if(it.isNotEmpty())
+                    TvShow = TMDB.getTV2(it[0].id.toString())
             }
 
 
