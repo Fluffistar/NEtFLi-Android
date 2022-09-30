@@ -28,7 +28,7 @@ class Start {
         fun setup(context: Context) = runBlocking{
             val sharedPref = context.getSharedPreferences("data", Context.MODE_PRIVATE)
             Session = sharedPref.getString("SessionID", "").orEmpty()
-            Domain = getDomain()
+            Domain = "http://190.115.18.20/" //getDomain()
             getWatchedSeries(context)
             all()
             neu()

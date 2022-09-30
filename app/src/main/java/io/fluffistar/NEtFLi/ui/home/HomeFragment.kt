@@ -70,7 +70,7 @@ class HomeFragment : Fragment() {
 
         showGenre(Start.Beliebt, root.context, "BELIEBT:")
         showGenre(Start.Neu, root.context, "NEU:")
-              (Start.Genres).shuffled().take(5).pmap {
+        (Start.Genres.filter { it.Series.size > 0 }).shuffled().take(5).pmap {
                    showGenre(
                        it.Series.shuffled().take(25), root.context,it.Name)
                }

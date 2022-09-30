@@ -3,26 +3,18 @@
     android:id="@+id/splashLayout"
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/orange"
+    android:background="@color/maincolor"
     >
 
     <ImageView
         android:id="@+id/splashicon"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:src="@drawable/ic_launcher2"
+        android:src="@drawable/netfli_icon"
         />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="Welcome to NEtFLi"
-        android:textSize="36dp"
-        android:gravity="center"
-        android:textColor="@color/black"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"/>
+
     <TextView
         android:id="@+id/appVersion"
         android:layout_width="match_parent"
@@ -30,7 +22,7 @@
         android:text="Version : 1.0"
         android:textSize="16dp"
         android:gravity="center"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="50dp"/>
 

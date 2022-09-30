@@ -10,7 +10,9 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.squareup.picasso.Picasso
 import io.fluffistar.NEtFLi.Backendv2.Serie
@@ -49,6 +51,18 @@ class SerienAdapter (private val context: Context, val  ArrayList: List<Serie>) 
 
             }
         }
+
+        var card : MaterialCardView = (holder.itemView as MaterialCardView)
+
+        holder.itemView.setOnFocusChangeListener { v, hasFocus ->
+
+            if (hasFocus)
+                card.strokeColor = ContextCompat.getColor(context,R.color.orange)
+            else
+                card.strokeColor = ContextCompat.getColor(context,R.color.maincolor)
+
+        }
+
         holder.itemView.setOnClickListener{
 
             val intent = Intent(

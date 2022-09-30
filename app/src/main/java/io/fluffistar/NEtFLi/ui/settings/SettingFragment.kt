@@ -1,18 +1,22 @@
 package io.fluffistar.NEtFLi.ui.settings
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import io.fluffistar.NEtFLi.*
 import io.fluffistar.NEtFLi.Backend.DownloadController
 import io.fluffistar.NEtFLi.Backend.Verwaltung
+import io.fluffistar.NEtFLi.ui.LoginPage.LoginActivity
 import kotlinx.android.synthetic.main.settingfragment.*
 import kotlinx.android.synthetic.main.splashlayout.*
 
@@ -42,8 +46,16 @@ class SettingFragment : Fragment() {
         val root = inflater.inflate(R.layout.settingfragment, container, false) as (ViewGroup)
         val autoplay = root.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.autoplay_settings)
 
+        var logout = root.findViewById<Button>(R.id.logoutbtn)
 
+        logout.setOnClickListener {
 
+            val sharedPref = root.context.applicationContext.getSharedPreferences(  "data", Context.MODE_PRIVATE)
+            sharedPref.edit().clear().apply()
+            val intent = Intent(root.context, LoginActivity::class.java)
+            startActivity(intent)
+            activity?.finish()
+        }
 
         autoplay.isChecked = Verwaltung.Settings.autplay
 

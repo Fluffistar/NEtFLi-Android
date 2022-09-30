@@ -8,13 +8,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.*
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
 import android.webkit.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.size
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
@@ -29,20 +30,20 @@ class Videoplayer : AppCompatActivity() {
     var serie : Serie? = null
     lateinit var _webview : WebView
 
-   lateinit var _play : ImageView
-  lateinit  var _top : RelativeLayout
-  lateinit  var _bar : RelativeLayout
-    lateinit  var _skipforward : ImageView
-    lateinit   var _skipbackward : ImageView
-    lateinit   var _backbtn : ImageView
+    lateinit var _play : MaterialButton
+    lateinit  var _top : MaterialCardView
+    lateinit  var _bar : MaterialCardView
+    lateinit  var _skipforward : MaterialButton
+    lateinit   var _skipbackward : MaterialButton
+    lateinit   var _backbtn : MaterialButton
     lateinit   var _title : TextView
-    lateinit   var _next : ImageView
+    lateinit   var _next : MaterialButton
     lateinit    var _maxtime : TextView
     lateinit   var _curtime : TextView
     lateinit    var _languagecombo : Spinner
     lateinit  var _hostercombo : Spinner
     lateinit var _timeline : SeekBar
-    lateinit var _more : ImageView
+    lateinit var _more : MaterialButton
 
 
 
@@ -138,21 +139,64 @@ class Videoplayer : AppCompatActivity() {
 
     lateinit var mFirebaseAnalytics : FirebaseAnalytics
 
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        super.onKeyUp(keyCode, event)
+        set_visible()
+        when(keyCode){
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE ->playbtn_click()
+            KeyEvent.KEYCODE_BACK -> back()
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> skip_forward()
+            KeyEvent.KEYCODE_MEDIA_REWIND -> skip_backwards()
+            // KeyEvent.KEYCODE_MEDIA_NEXT -> if (loaded) next()
+        }
+        return true
+    }
 
+    fun playbtn_click(){
+        if(_video.isPlaying) {
+            _video.pause()
+            _play.setIconResource(R.drawable.ic_play)
+            count = 0
+        }
+        else {
+            _video.start()
+            _play.setIconResource(R.drawable.ic_pause)
+            count = 0
+        }
+    }
 
+    fun set_visible(){
+        _bar.visibility = RelativeLayout.VISIBLE
+        _top.visibility = RelativeLayout.VISIBLE
+        count = 0
+    }
+
+    fun skip_forward(){
+        _video.seekTo(_video.currentPosition + 10000)
+        _video.start()
+        count = 0
+    }
+
+    fun skip_backwards(){
+        _video.seekTo(_video.currentPosition - 10000)
+        _video.start()
+        count = 0
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-          mFirebaseAnalytics = Firebase.analytics
+        mFirebaseAnalytics = Firebase.analytics
         setContentView(R.layout.activity_videoplayer)
-    //    setSupportActionBar(findViewById(R.id.toolbar))
+        //    setSupportActionBar(findViewById(R.id.toolbar))
 
         @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.hide(WindowInsets.Type.statusBars())
         } else {
             window.setFlags(
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
         }
 // Remember that you should never show the action bar if the
@@ -209,6 +253,7 @@ class Videoplayer : AppCompatActivity() {
                     }else{
                         _webview.visibility = View.VISIBLE
 
+
                     }
 
                 }
@@ -225,55 +270,72 @@ class Videoplayer : AppCompatActivity() {
 
 
 
-            _top.setOnClickListener { _top.visibility = View.VISIBLE
-                _bar.visibility = View.VISIBLE
-                count = 0
+
+            _top.setOnClickListener {
+                set_visible()
             }
-            _bar.setOnClickListener { _top.visibility = View.VISIBLE
-                _bar.visibility = View.VISIBLE
-                count = 0
+            _bar.setOnClickListener {
+                set_visible()
             }
-            _video.setOnClickListener { _top.visibility = View.VISIBLE
-                _bar.visibility = View.VISIBLE
-                count = 0
+            _video.setOnClickListener {
+                set_visible()
             }
-            _skipforward.setOnClickListener { _video.seekTo(_video.currentPosition + 10000)
-                _video.start()
+            _skipforward.setOnClickListener {
+                skip_forward()
             }
             _skipbackward.setOnClickListener {
-                _video.seekTo(_video.currentPosition - 10000)
-                _video.start()}
+                skip_backwards()
+            }
 
             _play.setOnClickListener {
 
-                if(_video.isPlaying) {
-                    _video.pause()
-                    _play.setImageResource(R.drawable.ic_play)
-                }
-                else {
-                    _video.start()
-                    _play.setImageResource(R.drawable.ic_pause)
-                }
+                playbtn_click()
             }
+
+            _timeline.keyProgressIncrement = 10
 
             _languagecombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parentView: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                     languageupdate()
+
                 }
 
                 override fun onNothingSelected(parentView: AdapterView<*>?) {
                     // your code here
+
                 }
             }
             _hostercombo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parentView: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     hosterupdate()
+
                 }
 
                 override fun onNothingSelected(parentView: AdapterView<*>?) {
                     // your code here
+
                 }
             }
+
+            _timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if(fromUser) {
+                        //  _video.pause()
+                        count = 0
+                        _video.seekTo(progress)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    count = 0
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    count = 0
+                }
+
+
+            })
 
             _video.setOnPreparedListener {  total_duration = _video.duration
                 _maxtime.text = timeConversion(total_duration.toLong())
@@ -287,9 +349,9 @@ class Videoplayer : AppCompatActivity() {
 
                     intent.setDataAndType(Uri.parse(myurl), "video/*")
 
-                   startActivity(Intent.createChooser(intent, "Select a Player"))
+                    startActivity(Intent.createChooser(intent, "Select a Player"))
                 }
-                _play.setImageResource(R.drawable.ic_pause)
+                _play.setIconResource(R.drawable.ic_pause)
                 _video.setOnCompletionListener { if (loaded) next() }
 
 
@@ -301,10 +363,10 @@ class Videoplayer : AppCompatActivity() {
 
                 intent.setDataAndType(Uri.parse(myurl), "video/*")
 
-             startActivity(Intent.createChooser(intent, "Select a Player"))
+                startActivity(Intent.createChooser(intent, "Select a Player"))
             }
 
-         setup(serie)
+            setup(serie)
 
         }
     }
@@ -324,18 +386,18 @@ class Videoplayer : AppCompatActivity() {
         while(!job.isCompleted){}
         //   current_pos = _video.currentPosition
 
-        _title.text = selectedepisdoe!!.Title
+        _title.text = if(selectedepisdoe!!.Title.length > 30) selectedepisdoe!!.Title.substring(0,30)+"..."  else selectedepisdoe!!.Title
 
 
 
-                _languagecombo.adapter = ArrayAdapter<DataLanguage>(this, R.layout.spinner_item, selectedepisdoe!!.Languages)
+        _languagecombo.adapter = ArrayAdapter<DataLanguage>(this, R.layout.spinner_item, selectedepisdoe!!.Languages)
 
-                _hostercombo.adapter = ArrayAdapter<Hoster>(this, R.layout.spinner_item, selectedepisdoe!!.Languages[0].Hosters)
+        _hostercombo.adapter = ArrayAdapter<Hoster>(this, R.layout.spinner_item, selectedepisdoe!!.Languages[0].Hosters)
 
 
-                _hostercombo.setSelection(0)
-                _languagecombo.setSelection(0)
-                //  languageupdate()
+        _hostercombo.setSelection(0)
+        _languagecombo.setSelection(0)
+        //  languageupdate()
 
         //display video duration
 
@@ -350,8 +412,8 @@ class Videoplayer : AppCompatActivity() {
         if (_hostercombo.size > 0) {
             loaded = false
             CookieManager.getInstance().setCookie(
-                    Start.Domain,
-                     Start.Session
+                Start.Domain,
+                Start.Session
             );
 
 
@@ -373,7 +435,7 @@ class Videoplayer : AppCompatActivity() {
             _hostercombo.setSelection(0) ;
         }
     }
-
+    var combo_open : Boolean = false
     var count : Int = 0
     fun updateinit(){
 
@@ -382,17 +444,18 @@ class Videoplayer : AppCompatActivity() {
 
 
             try {
-             runOnUiThread() {
+                runOnUiThread() {
                     if(_video.isPlaying) {
                         //does actions on Ui-Thread u neeed it because Ui-elements can only be edited in Main/Ui-Thread
                         count++
                         current_pos = _video.currentPosition
                         _curtime.text = timeConversion(current_pos.toLong())
                         _timeline.progress = current_pos
-                        if (count > 6) {
+                        if (count > 6  ) {
                             _bar.visibility = RelativeLayout.GONE
                             _top.visibility = RelativeLayout.GONE
                         }
+
                     }
                 }
 
@@ -415,15 +478,15 @@ class Videoplayer : AppCompatActivity() {
     }
     fun finished(html: String){
         var src = ""
-            _video.setVideoURI(Uri.parse(src))
-         _video.start()
-        _play.setImageResource(R.drawable.ic_pause)
+        _video.setVideoURI(Uri.parse(src))
+        _video.start()
+        _play.setIconResource(R.drawable.ic_pause)
 
     }
     fun play(src: String){
-       _video.setVideoURI(Uri.parse(src))
+        _video.setVideoURI(Uri.parse(src))
         _video.start()
-        _play.setImageResource(R.drawable.ic_pause)
+        _play.setIconResource(R.drawable.ic_pause)
     }
 
     fun setup(serie: Serie?){
@@ -525,7 +588,7 @@ class Videoplayer : AppCompatActivity() {
             {
                 if(Elements[i].id == "player_html5_api")
                 {
-                  return@runBlocking Elements[i].src
+                    return@runBlocking Elements[i].src
                 }
 
 
@@ -545,7 +608,7 @@ class Videoplayer : AppCompatActivity() {
             {
                 if(Elements[i].id == "videojs_html5_api")
                 {
-                    return@runBlocking "https:" + Elements[i].src.replace("amp;","");
+                    return@runBlocking "https:" + Elements[i].src.replace("amp;", "");
                 }
 
 
@@ -555,10 +618,10 @@ class Videoplayer : AppCompatActivity() {
             return@runBlocking "";
 
         }
-        fun vivo(str:String) : String = runBlocking{
-           var output = str.getBetween("source: '", "',");
+        fun vivo(str: String) : String = runBlocking{
+            var output = str.getBetween("source: '", "',");
 
-            return@runBlocking vivolink( output);
+            return@runBlocking vivolink(output);
         }
 
         fun vivolink(str: String):String{

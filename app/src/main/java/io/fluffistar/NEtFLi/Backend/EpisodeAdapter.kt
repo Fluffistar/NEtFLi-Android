@@ -8,8 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import com.squareup.picasso.Picasso
 import io.fluffistar.NEtFLi.Backendv2.Episode
 import io.fluffistar.NEtFLi.Backendv2.Start
@@ -57,6 +59,18 @@ class EpisodeAdapter(private val context: Context, val ArrayList: MutableList<Ep
 
             }
         }
+
+        var card : MaterialCardView = (holder.itemView as MaterialCardView)
+
+        holder.itemView.setOnFocusChangeListener { v, hasFocus ->
+
+            if (hasFocus)
+                card.strokeColor = ContextCompat.getColor(context,R.color.orange)
+            else
+                card.strokeColor = ContextCompat.getColor(context,R.color.maincolor)
+
+        }
+
         holder.itemView.setOnClickListener {
             // Toast.makeText(context, "${s.id}", Toast.LENGTH_SHORT).show()
 

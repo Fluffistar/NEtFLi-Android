@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.NEtFLi" parent="Theme.MaterialComponents.DayNight">
+    <style name="Theme.NEtFLi" parent="Theme.MaterialComponents.Light">
         <!-- Primary brand color. -->
         <item name="colorPrimary">#FF1C1C1C</item>
         <item name="colorPrimaryVariant">#FF1C1C1C</item>

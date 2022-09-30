@@ -192,14 +192,14 @@ data class LastEpisodeToAir (
 )
 @Serializable
 data class Network (
-    val name: String,
-    val id: Long,
+    val name: String = "",
+    val id: Long = 0,
 
     @SerialName(   "logo_path")
-    val logoPath: String,
+    val logoPath: String = "",
 
     @SerialName( "origin_country")
-    val originCountry: String
+    val originCountry: String = ""
 )
 @Serializable
 data class ProductionCountry (
