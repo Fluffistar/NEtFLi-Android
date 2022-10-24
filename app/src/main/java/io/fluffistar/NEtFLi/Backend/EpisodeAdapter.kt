@@ -45,12 +45,12 @@ class EpisodeAdapter(private val context: Context, val ArrayList: MutableList<Ep
 
                     holder.Title.text = "${model.Title }"
 
-                    holder.text.text = if(model.Description().length < 140) model.Description() else model.Description().substring(0,140) + "..."
+                    holder.text.text = if(model.Description().length < 120) model.Description() else model.Description().substring(0,120) + "..."
 
 
                 try {
 
-                       Picasso.get().load(TMDB.ImgPath + model.Background()).noPlaceholder().noFade().into(holder.img)
+                       Picasso.get().load(TMDB.ImgPath + model.Background()).noPlaceholder().noFade().resize(150, 100).into(holder.img)
                 } catch (ex: Exception) {
                     Log.d("ERROR", ex.message.toString())
                 }

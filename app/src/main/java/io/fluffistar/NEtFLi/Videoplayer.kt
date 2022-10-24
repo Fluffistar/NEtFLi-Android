@@ -557,17 +557,14 @@ class Videoplayer : AppCompatActivity() {
 
             for(  i in 0 until Elements.size )
             {
-                if(Elements[i].id == "voe-player")
-                {
-                    found = true;
-                }
 
-                if(found && Elements[i].type == io.fluffistar.NEtFLi.View.script )
+
+                if(  Elements[i].type == io.fluffistar.NEtFLi.View.script )
                 {
 
-                    val s = Elements[i].content.getBetween("hls\": \"", "\"");
-
-                    return@runBlocking s;
+                    val s = Elements[i].content.getBetween("hls': '", "'");
+                    if (s != "")
+                        return@runBlocking s;
                 }
             }
 
@@ -606,9 +603,9 @@ class Videoplayer : AppCompatActivity() {
 
             for(  i in Elements.indices)
             {
-                if(Elements[i].id == "videojs_html5_api")
+                if(Elements[i].id == "robotlink")
                 {
-                    return@runBlocking "https:" + Elements[i].src.replace("amp;", "");
+                    return@runBlocking "https:" + Elements[i].content.replace("amp;","");
                 }
 
 

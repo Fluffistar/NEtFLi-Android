@@ -105,7 +105,7 @@ class SeriesPage : AppCompatActivity() {
         // blocking I/O operations
 
         Picasso.get().load(  serie.poster).into(img);
-        title.text = serie.Title
+        title.text =   if (serie.Title.length > 200) serie.Title.substring(0,200)  else serie.Title
 
         text.text =  serie.despriction
 

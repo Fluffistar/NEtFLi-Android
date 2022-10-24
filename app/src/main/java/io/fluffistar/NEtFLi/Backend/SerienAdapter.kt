@@ -41,7 +41,7 @@ class SerienAdapter (private val context: Context, val  ArrayList: List<Serie>) 
             Log.d("Cover ${model.Title}",model.poster)
             withContext(Dispatchers.Main) {
                 if(model.poster != "")
-                Picasso.get().load(model.poster).noFade().noPlaceholder().into(holder.img);
+                    Picasso.get().load(model.poster).noFade().noPlaceholder().into(holder.img);
                 val title = model.Title.replace("&amp;","")
                 holder.Title.text =
                     (if (title.length <= 18) title else title.substring(
@@ -71,7 +71,7 @@ class SerienAdapter (private val context: Context, val  ArrayList: List<Serie>) 
             )
 
           loadtv(model)
-            model.loadSeasons()
+
 
            Start.SelectedSerie = model
 
@@ -82,6 +82,7 @@ class SerienAdapter (private val context: Context, val  ArrayList: List<Serie>) 
     }
     fun loadtv(model :Serie ) = runBlocking(Dispatchers.IO) {
         model.loadTv()
+        model.loadSeasons()
     }
 
     override fun getItemCount(): Int {

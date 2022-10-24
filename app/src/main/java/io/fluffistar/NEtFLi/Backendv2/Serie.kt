@@ -122,8 +122,9 @@ public class Serie
     var Tvloaded = false;
     var Seasonlaoded = false;
 
-     fun loadSeasons()
+     suspend fun loadSeasons()
     {
+        val  Elements =   Parser.setup(Start.Domain + link);
         if (!Seasonlaoded)
         {
 
